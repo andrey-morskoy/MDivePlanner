@@ -1,0 +1,30 @@
+﻿@using MDivePlannerWeb.Models
+@model AppModel
+
+<div class="appRoot">
+    <div class="appHeader">
+        <div class="appNameContainer">
+            <div class="appName">MDivePlanner</div>
+            <div>Dive planner that implementes Bühlmann deco algorythm (ZHL-16a,b,c) with Gradient Factors</div>
+        </div>
+    </div>
+    <div class="diveParams">
+        <div class="blockLabel">
+            <span>Dive Parameters</span>&nbsp;
+            <span style="font-size: 12px">(depth - metters, time - minutes)</span>
+        </div>
+        <div>
+            <form id="SubmitDiveParamsForm" asp-controller="App" asp-action="SetParams" method="post">
+                <div id="DiveParamsContainer">
+                    <partial name="DiveParams" model="Model.DiveParamsModel" />
+                </div>
+                <div class="buttonsPanel">
+                    <button id="SubmitDiveParams" type="button">Calculate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div style="text-align: center;">
+        <canvas id="OutputCanvas" width="1024" height="768"></canvas>
+    </div>
+</div>

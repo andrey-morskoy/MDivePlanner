@@ -1,0 +1,115 @@
+﻿span.field-validation-error {
+    color: red;
+    font-size: 12px;
+}
+
+input.input-validation-error {
+    border: 1px solid red;
+    color: gray;
+}
+
+.validation-summary-errors {
+    margin-top: 10px;
+    color: red;
+}
+
+.appHeader {
+    width: 100%;
+    padding: 35px;
+}
+
+.appNameContainer {
+    text-align: center;
+    width: auto;
+    margin: auto;
+}
+
+.appName {
+    text-align: center;
+    font-weight: bold;
+    width: auto;
+    margin: auto;
+}
+
+.diveParams {
+    margin-top: 20px;
+    width: 960px;
+    border: 1px solid #BBCCCC;
+    border-radius: 5px;
+    padding: 4px 10px 10px 10px;
+    margin: auto;
+}
+
+.diveParams .blockLabel {
+    padding: 0px;
+    margin: 0px;
+    margin-bottom: 5px;
+    color: #808080;
+}
+ 
+.diveParams .levels {
+    width: 340px;
+    border: 1px solid #BBCCCC;
+    border-radius: 5px;
+    padding: 10px;
+    padding-top: 3px;
+}
+
+.diveParams .levels button.add {
+    width: 60px;
+    height: 25px;
+    margin-top: 23px;
+}
+
+.diveParams .levels .levelBlock {
+    margin-right: 15px;
+}
+
+.diveParams .levelsTable {
+    margin-top: 10px;
+    width: 100%;
+    border: 1px solid gray;
+}
+
+.diveParams .levelsTable .header {
+    border: 1px solid #a5a5a5;
+    border-collapse: collapse;
+    border-bottom: 0;
+    padding-left: 7px;
+    padding-right: 7px;
+    line-height: 20px;
+}
+
+.diveParams .levelsTable thead {
+    background-color: #f3f3f3;
+    background-image: linear-gradient(to bottom, #f3f3f3, #c6c6c6);
+}
+
+.diveParams .levelsTable .body td {
+    border: 1px solid #a5a5a5;
+    border-collapse: collapse;
+    padding-left: 7px;
+    padding-right: 7px;
+    line-height: 20px;
+}
+
+#DiveParamsContainer label {
+    padding: 0px;
+    margin: 0px;
+}
+
+.buttonsPanel {
+    margin-top: 20px;
+}
+
+input.text-box {
+    padding: 0px 5px 0px 5px;
+    margin: 0px;
+    height: 25px;
+}
+
+#OutputCanvas {
+    margin-top: 15px;
+    border: 1px solid gray;
+    border-radius: 5px;
+}

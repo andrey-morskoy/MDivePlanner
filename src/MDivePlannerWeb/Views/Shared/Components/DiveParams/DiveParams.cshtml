@@ -1,0 +1,37 @@
+﻿@using MDivePlannerWeb.Models
+@model DiveParamsModel
+
+<div>
+    <form id="diveParamsForm" asp-controller="App" asp-action="SetParams" method="post" enctype="multipart/form-data">
+        <label asp-for="Depth">Depth:</label>
+        <br />
+        @Html.TextBoxFor(m => m.Depth, new { @class = "text-box" })
+        <br />
+        <div>
+            <input asp-for="Depth" class="form-control" />
+            <span asp-validation-for="Depth" class="text-danger"></span>
+        </div>
+        <div>
+            <button type="submit">Ok</button>
+        </div>
+    </form>
+    @*
+        <form id="diveParamsForm" asp-controller="App" asp-action="SetParams" method="post" enctype="multipart/form-data">
+            <span class="label">Depth:</span>
+            <br />
+            @Html.TextBoxFor(m => m.Depth, new { @class = "text-box" })
+            <br />
+            @Html.ValidationMessageFor(m => m.Depth)
+            <br />
+            <span class="label">Time:</span>
+            <br />
+            @Html.TextBoxFor(m => m.Time, new { @class = "text-box" })
+            <br />
+            @Html.ValidationMessageFor(m => m.Time)
+            <br />
+            <div>
+                <button type="submit">Ok</button>
+            </div>
+        </form>
+    *@
+</div>

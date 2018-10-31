@@ -1,0 +1,88 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@using MDivePlannerWeb.Models
+@model DiveParamsModel
+
+<div>
+    <div class="levels">
+        <div class="floatLeft levelBlock">
+            <label>Depth:</label>
+            <br />
+            <input type="text" class="text-box" style="width: 50px" />
+        </div>
+        <div class="floatLeft levelBlock">
+            <label>Time:</label>
+            <br />
+            <input type="text" class="text-box" style="width: 50px" />
+        </div>
+        <div class="floatLeft levelBlock">
+            <label>Gas O<span style="font-size: 12px">2</span>/He:</label>
+            <br />
+            <input type="text" class="text-box" style="width: 40px" />
+            <span> / </span>
+            <input type="text" class="text-box" style="width: 40px" />
+            <span> % </span>
+        </div>
+        <div class="floatLef">
+            <button type="button" class="button add">Add</button>
+        </div>
+        <div class="clear"></div>
+        <table class="levelsTable">
+            <thead>
+                <tr>
+                    <td class="header" style="width: 60px">Depth</td>
+                    <td class="header" style="width: 60px">Time</td>
+                    <td class="header">Gas</td>
+                    <td class="header" style="width: 60px">Action</td>
+                </tr>
+            </thead>
+            <tbody class="body">
+            </tbody>
+        </table>
+    </div>
+
+    <label asp-for="Depth">Depth:</label>
+    <br />
+    @Html.TextBoxFor(m => m.Depth, new { @class = "text-box" })
+    <br />
+    @Html.ValidationMessageFor(m => m.Depth)
+    <br />
+
+    <label asp-for="Time">Time:</label>
+    <br />
+    @Html.TextBoxFor(m => m.Time, new { @class = "text-box" })
+    <br />
+    @Html.ValidationMessageFor(m => m.Time)
+    <br />
+
+    <label asp-for="Interval">Interval:</label>
+    <br />
+    @Html.TextBoxFor(m => m.Interval, new { @class = "text-box" })
+    <br />
+    @Html.ValidationMessageFor(m => m.Interval)
+
+    @Html.ValidationSummary(true)
+    <br />
+
+    <label asp-for="WaterDensity">Water Density:</label>
+    <br />
+    @Html.TextBoxFor(m => m.WaterDensity, new { @class = "text-box" })
+    <br />
+    @Html.ValidationMessageFor(m => m.WaterDensity)
+
+    @Html.ValidationSummary(true)
+
+    <input type="hidden" id="DiveParamsValid" value="@{ @Model.IsModelValid.ToString().ToLower() }" />
+
+    <script>
+        var direParams =
+        {
+            depth: @Model.Depth,
+            diveTime: @Model.Time
+        };
+    </script>
+</div>
