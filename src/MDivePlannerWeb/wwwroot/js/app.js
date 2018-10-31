@@ -4,7 +4,10 @@
 var app = {
     init: function () {
         var context = this;
-        $("#SubmitDiveParams").click(function (e) {
+
+        context.overwatchLevels();
+
+        $("#SubmitDiveParams").click((e) => {
             e.preventDefault();
 
             $.ajax({
@@ -14,18 +17,26 @@ var app = {
                 success: function (result) {
                     $("#DiveParamsContainer").html(result);
 
+                    context.overwatchLevels();
+
+                    var markInvalid = elem => {
+                        if ($(elem).val().toLowerCase() == "false") {
+                            var checkbox = $(elem).parent().find("input[type=checkbox]");
+                            if (checkbox.is(':checked'))
+                                checkbox.addClass("input-validation-error");
+                        }
+                    };
+
+                    $(".levels .levelsTable input.levelValid").each((i, elem) => { markInvalid(elem); });
+                    $(".decoLevels .levelsTable input.levelValid").each((i, elem) => { markInvalid(elem); });
+
                     var valid = $("#DiveParamsValid", result).val() == "true";
                     if (valid)
-                        context.onGotResult();
                         context.onGotResult();
                 }
             });
 
             return false;
-        });
-
-        $(".levels button.add").click(function () {
-            $("table.levelsTable .body").append("<tr><td>1</td> <td>2</td> <td>3</td> <td>4</td> </tr>");
         });
     },
 
@@ -37,6 +48,31 @@ var app = {
         diveResult.totalTime = direParams.diveTime;
 
         graph.init(canvas, diveResult);
+    },
+
+    overwatchLevels: function () {
+        var enableDisableLevels = checkbox => {
+            var checked = checkbox.checked;
+            $(checkbox).closest("tr").find("input[type=text]").each((ind, elem) => {
+                $(elem).prop('disabled', !checked);
+            });
+        }
+
+        $(".levels table.levelsTable input[type=checkbox]").each((ind, elem) => {
+            enableDisableLevels(elem);
+        });
+
+        $(".levels table.levelsTable input[type=checkbox]").click(function () {
+            enableDisableLevels(this);
+        });
+
+        $(".decoLevels table.levelsTable input[type=checkbox]").each((ind, elem) => {
+            enableDisableLevels(elem);
+        });
+
+        $(".decoLevels table.levelsTable input[type=checkbox]").click(function () {
+            enableDisableLevels(this);
+        });
     }
 };
 

@@ -8,14 +8,18 @@ input.input-validation-error {
     color: gray;
 }
 
+input[type=checkbox].input-validation-error {
+    outline: 1px solid red;
+}
+
 .validation-summary-errors {
-    margin-top: 10px;
     color: red;
 }
 
 .appHeader {
     width: 100%;
-    padding: 35px;
+    padding: 30px;
+    line-height: 20px;
 }
 
 .appNameContainer {
@@ -33,11 +37,20 @@ input.input-validation-error {
 
 .diveParams {
     margin-top: 20px;
-    width: 960px;
+    width: 785px;
     border: 1px solid #BBCCCC;
     border-radius: 5px;
     padding: 4px 10px 10px 10px;
     margin: auto;
+}
+
+.diveParams .mainTable {
+    width: 100%;
+}
+
+.diveParams .mainTable td {
+    vertical-align: top;
+    padding: 5px;
 }
 
 .diveParams .blockLabel {
@@ -46,27 +59,26 @@ input.input-validation-error {
     margin-bottom: 5px;
     color: #808080;
 }
- 
-.diveParams .levels {
-    width: 340px;
+
+.diveParams .levels, .diveParams .decoLevels {
+    width: 370px;
     border: 1px solid #BBCCCC;
     border-radius: 5px;
     padding: 10px;
+    padding-bottom: 8px;
     padding-top: 3px;
+    margin-bottom: 5px;
 }
 
-.diveParams .levels button.add {
-    width: 60px;
-    height: 25px;
-    margin-top: 23px;
-}
-
-.diveParams .levels .levelBlock {
-    margin-right: 15px;
+.diveParams .levels .label, .diveParams .decoLevels .label {
+    padding: 0px;
+    margin: 0px;
+    line-height: 18px;
+    color: #808080;
 }
 
 .diveParams .levelsTable {
-    margin-top: 10px;
+    margin-top: 6px;
     width: 100%;
     border: 1px solid gray;
 }
@@ -88,28 +100,63 @@ input.input-validation-error {
 .diveParams .levelsTable .body td {
     border: 1px solid #a5a5a5;
     border-collapse: collapse;
+    padding: 5px;
     padding-left: 7px;
     padding-right: 7px;
     line-height: 20px;
+    vertical-align: top;
+}
+
+.diveParams .levelsTable input[type=text] {
+    width: 40px;
+}
+
+.diveParams .levelsTable input[type=checkbox] {
+    margin-top: 6px;
 }
 
 #DiveParamsContainer label {
     padding: 0px;
     margin: 0px;
+    color: #808080;
+    line-height: 23px;
+}
+
+.diveParams .otherParams {
+    line-height: 15px;
 }
 
 .buttonsPanel {
-    margin-top: 20px;
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #BBCCCC;
 }
 
 input.text-box {
     padding: 0px 5px 0px 5px;
     margin: 0px;
     height: 25px;
+    width: 200px;
+}
+
+input.textBoxShort
+{
+    width: 60px !important;
+}
+
+select.dropdown {
+    padding: 0px 5px 0px 5px;
+    margin: 0px;
+    height: 25px;
+    width: 200px;
 }
 
 #OutputCanvas {
     margin-top: 15px;
     border: 1px solid gray;
     border-radius: 5px;
+}
+
+#SubmitDiveParams {
+    width: 100px;
 }

@@ -11,7 +11,7 @@
     <div class="diveParams">
         <div class="blockLabel">
             <span>Dive Parameters</span>&nbsp;
-            <span style="font-size: 12px">(depth - metters, time - minutes)</span>
+            <span style="font-size: 12px">(depth - metters, time - minutes, volume - litters)</span>
         </div>
         <div>
             <form id="SubmitDiveParamsForm" asp-controller="App" asp-action="SetParams" method="post">
@@ -19,7 +19,7 @@
                     <partial name="DiveParams" model="Model.DiveParamsModel" />
                 </div>
                 <div class="buttonsPanel">
-                    <button id="SubmitDiveParams" type="button">Calculate</button>
+                    <button id="SubmitDiveParams" class="button" type="button">Calculate</button>
                 </div>
             </form>
         </div>

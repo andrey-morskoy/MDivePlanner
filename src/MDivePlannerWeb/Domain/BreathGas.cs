@@ -35,12 +35,15 @@ namespace MDivePlannerWeb.Domain
         public BreathGas(double ppO, double ppN, double ppHe)
         {
             PpO = ppO;
-            PpN = ppN;
-            PpHe = ppHe;
+            PpN = Math.Abs(ppN);
+            PpHe = Math.Abs(ppHe);
         }
 
         public bool Validate()
         {
+            if (PpO < double.Epsilon)
+                return false;
+
             return DivingMath.CompareDouble(PpO + PpHe + PpN, 1.0);
         }
 
