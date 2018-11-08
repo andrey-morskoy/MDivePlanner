@@ -107,12 +107,14 @@ namespace MDivePlannerWeb.Models
             SafetyStopTime = 3;
             RmvBottom = 20; 
             RmvDeco = 18;
+            Algorythm = Zhl16Algorithm.SubType.C.ToString();
         }
 
         public DiveParameters GetDiveParameters()
         {
             var diveParams = new DiveParameters();
             var levels = new List<DiveLevel>(DiveLevels.Length);
+            var decoLevels = new List<DiveLevel>(DecoLevels.Length);
 
             diveParams.DiveConfig.AlgoSubType = Enum.Parse<Zhl16Algorithm.SubType>(Algorythm);
             diveParams.DiveConfig.MinDecoTime = Enum.Parse<MinDecoTimeStep>(MinDecoStopTime);
@@ -135,6 +137,16 @@ namespace MDivePlannerWeb.Models
                 });
             }
 
+            foreach (var levelModel in DecoLevels.Where(l => l.IsValid && l.UseLevel))
+            {
+                decoLevels.Add(new DiveLevel
+                {
+                    DepthFactor = new DepthFactor(levelModel.Depth ?? 0, WaterDensity),
+                    Gas = levelModel.Gas.GetGas(),
+                });
+            }
+
+            diveParams.DecoLevels = decoLevels;
             diveParams.Levels = levels;
             diveParams.IntervalTime = Interval ?? 0;
 

@@ -7,9 +7,13 @@
 
   <ItemGroup>
     <Compile Remove="Domain\**" />
+    <Compile Remove="Domain_\**" />
     <Content Remove="Domain\**" />
+    <Content Remove="Domain_\**" />
     <EmbeddedResource Remove="Domain\**" />
+    <EmbeddedResource Remove="Domain_\**" />
     <None Remove="Domain\**" />
+    <None Remove="Domain_\**" />
   </ItemGroup>
 
 
@@ -21,6 +25,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MDivePlanner.Domain\MDivePlanner.Domain.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
   </ItemGroup>
 
 </Project>

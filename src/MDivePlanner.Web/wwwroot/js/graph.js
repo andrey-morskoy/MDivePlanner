@@ -27,7 +27,6 @@
         this.drawCelingDepthPoints(drawData.timeKoef, drawData.depthKoef);
         this.drawDiveProfileGrapth();
         this.drawMarks(drawData.timeKoef, drawData.depthKoef);
-
     },
 
     drawMarks: function (timeKoef, depthKoef) {
@@ -114,14 +113,11 @@
                 ctx.fillStyle = this._colorGeneralLabel;
                 ctx.fillText(text, textX, y - 15);
                 ctx.fillText(timeText, x, y - 15);
-
             }
         }
 
         //draw NDL
-        if (diveRes.dynamicNoDecoDepthTime != null) {
-            diveRes.dynamicNoDecoDepthTime
-
+        if (diveRes.dynamicNoDecoDepthTime != null && diveRes.dynamicNoDecoDepthTime.time > 0) {
             var noDecoX = 1 + this._margin + diveRes.dynamicNoDecoDepthTime.time * timeKoef;
             var y = this._marginTop + diveRes.dynamicNoDecoDepthTime.depth * depthKoef;
 
@@ -136,13 +132,72 @@
             ctx.fillStyle = this._colorGeneralLabel;
             ctx.fillText("NDL", noDecoX - 11, y - 16);
         }
+
+        // start & end dive flat points
+        var startEndPointRadius = 5;
+
+        ctx.beginPath();
+        ctx.strokeStyle = this._colorDiveBottom;
+        ctx.fillStyle = this._colorDiveBottom;
+        ctx.arc(1 + this._margin, this._marginTop, startEndPointRadius, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = this._colorDiveBottom;
+        var x = 1 + this._margin + Math.ceil(diveRes.planPoints[diveRes.planPoints.length - 1].absoluteTime * timeKoef);
+        ctx.arc(x, this._marginTop, startEndPointRadius, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // gas switches
+        this.drawGasSwitches(timeKoef, depthKoef);
+    },
+
+    drawGasSwitches: function (timeKoef, depthKoef) {
+        var ctx = this._context;
+        var diveRes = this._diveResult;
+        var graphHeight = this._canvasHeight - this._margin - this._marginTop;
+
+        if (diveRes.decoGasSwitches != null) {
+            var image = new Image();
+            var that = this;
+            image.onload = function () {
+                for (var i = 0; i < diveRes.decoGasSwitches.length; i++) {
+                    var gasSwitch = diveRes.decoGasSwitches[i];
+                    var x = 1 + that._margin + gasSwitch.absoluteTime * timeKoef;
+                    var y = that._marginTop + gasSwitch.depth * depthKoef;
+                    var lineY = graphHeight + that._marginTop;
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = ctx.fillStyle = "#007d00";
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x, lineY);
+
+                    ctx.moveTo(1 + that._margin, y);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#007800";
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    ctx.fillStyle = ctx.strokeStyle;
+
+                    var text = "Deco Gas (" + Math.round(gasSwitch.gas.ppO * 100.0) + "% O2)";
+                    var textSize = ctx.measureText(text);
+                    var textStart = { x: x - textSize.width - 17, y: y - 14 };
+
+                    ctx.drawImage(image, textStart.x - image.width - 1, y - image.height);
+                    ctx.fillText(text, textStart.x, textStart.y);
+                }
+            };
+            image.src = document.URL + "images/deco_tank.png";
+        }
     },
 
     drawDiveProfileGrapth: function () {
         var ctx = this._context;
         var diveRes = this._diveResult;
         var prevPoint = null;
-        var startEndPointRadius = 5;
 
         var graphHeight = this._canvasHeight - this._margin - this._marginTop;
         var graphWidth = this._canvasWidth - 2 * this._margin;
@@ -200,19 +255,6 @@
         }
 
         ctx.stroke();
-
-        // start & end dive flat points
-        ctx.beginPath();
-        ctx.strokeStyle = this._colorDiveBottom;
-        ctx.fillStyle = this._colorDiveBottom;
-        ctx.arc(1 + this._margin, this._marginTop, startEndPointRadius, 0, 2 * Math.PI);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.fillStyle = this._colorDiveBottom;
-        ctx.arc(prevPoint.pointXY.x, prevPoint.pointXY.y, startEndPointRadius, 0, 2 * Math.PI);
-        ctx.fill();
-
     },
 
     drawCelingDepthPoints: function (timeKoef, depthKoef) {

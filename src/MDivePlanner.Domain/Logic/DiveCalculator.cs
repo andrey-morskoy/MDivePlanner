@@ -258,6 +258,7 @@ namespace MDivePlanner.Domain.Logic
                     }
                 }
 
+                ceilingDepthPoints.Add(new DepthTime(0, diveResult.CeilingDepthPoints.Last().Time));
                 plan.CeilingDepthPoints = ceilingDepthPoints;
             }
 
