@@ -8,6 +8,10 @@ namespace MDivePlanner.Domain.Entities
 
         public double AbsoluteTime { get; set; }
 
+        public double PpO { get; set; }
+
         public BreathGas Gas { get; set; }
+
+        public bool IsDeco { get; set; }
     }
 }

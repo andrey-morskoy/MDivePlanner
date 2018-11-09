@@ -1,6 +1,7 @@
 ﻿var graph =
 {
     _context: null,
+    _showGasesGraph: false,
     _margin: 60,
     _marginTop: 35,
     _canvasHeight: 0,
@@ -13,11 +14,12 @@
     _colorGeneralLabel: "#505050",
     _diveResult: null,
 
-    init: function (canvas, diveResult) {
+    init: function (canvas, diveResult, showGasesGrapth) {
         this._diveResult = diveResult;
         this._context = canvas.getContext("2d");
         this._canvasHeight = canvas.height;
         this._canvasWidth = canvas.width;
+        this._showGasesGraph = showGasesGrapth == true;
 
         this._context.fillStyle = "#fbfbfd";
         this._context.fillRect(0, 0, canvas.width, canvas.height);
@@ -25,8 +27,23 @@
 
         var drawData = this.drawBase();
         this.drawCelingDepthPoints(drawData.timeKoef, drawData.depthKoef);
-        this.drawDiveProfileGrapth();
-        this.drawMarks(drawData.timeKoef, drawData.depthKoef);
+
+        if (this._showGasesGraph)
+            this.drawGasesGrapth();
+        else {
+            this.drawDiveProfileGrapth();
+            this.drawMarks(drawData.timeKoef, drawData.depthKoef);
+        }
+
+        $("#GraphSwitch").css("left", canvas.offsetLeft + canvas.width - $("#GraphSwitch").outerWidth() - 5);
+        $("#GraphSwitch").css("top", canvas.offsetTop + 5);
+
+        var context = this;
+        $("#GraphSwitch").unbind("click").click(function (a) {
+            var showGases = !context._showGasesGraph;
+            $(this).text(showGases ? "Profile" : "Gases");
+            context.init(canvas, diveResult, showGases);
+        });
     },
 
     drawMarks: function (timeKoef, depthKoef) {
@@ -129,8 +146,13 @@
             ctx.fillStyle = this._colorDiveDeco;
             ctx.fillRect(noDecoX - 3, y - 3, 6, 6);
 
+            var prevFont = ctx.font;
+            ctx.font = "11.7px Arial";
+
             ctx.fillStyle = this._colorGeneralLabel;
             ctx.fillText("NDL", noDecoX - 11, y - 16);
+
+            ctx.font = prevFont;
         }
 
         // start & end dive flat points
@@ -150,6 +172,36 @@
 
         // gas switches
         this.drawGasSwitches(timeKoef, depthKoef);
+
+        // levels info
+        this.drawLevelsInfo(timeKoef, depthKoef);
+    },
+
+    drawLevelsInfo: function (timeKoef, depthKoef) {
+        var ctx = this._context;
+        var diveRes = this._diveResult;
+        var graphHeight = this._canvasHeight - this._margin - this._marginTop;
+
+        if (diveRes.levelsInfo != null) {
+            ctx.beginPath();
+            var prevFont = ctx.font;
+            ctx.font = "11.7px Arial";
+
+            for (var i = 0; i < diveRes.levelsInfo.length; i++) {
+                var level = diveRes.levelsInfo[i];
+
+
+
+                var x = 1 + this._margin + level.timeReached * timeKoef;
+                var y = this._marginTop + level.depth * depthKoef;
+
+                var text = level.gas.name + "  END: " + level.end.toFixed(1) + "m  PpO: " + level.ppO.toFixed(2);
+                ctx.fillStyle = "#000000";
+                ctx.fillText(text, x + 4, y + 8);
+            }
+
+            ctx.font = prevFont;
+        }
     },
 
     drawGasSwitches: function (timeKoef, depthKoef) {
@@ -157,41 +209,145 @@
         var diveRes = this._diveResult;
         var graphHeight = this._canvasHeight - this._margin - this._marginTop;
 
-        if (diveRes.decoGasSwitches != null) {
+        if (diveRes.gasSwitches != null) {
             var image = new Image();
             var that = this;
             image.onload = function () {
-                for (var i = 0; i < diveRes.decoGasSwitches.length; i++) {
-                    var gasSwitch = diveRes.decoGasSwitches[i];
+                for (var i = 0; i < diveRes.gasSwitches.length; i++) {
+                    var gasSwitch = diveRes.gasSwitches[i];
                     var x = 1 + that._margin + gasSwitch.absoluteTime * timeKoef;
                     var y = that._marginTop + gasSwitch.depth * depthKoef;
                     var lineY = graphHeight + that._marginTop;
 
                     ctx.beginPath();
-                    ctx.strokeStyle = ctx.fillStyle = "#007d00";
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x, lineY);
+                    var prevFont = ctx.font;
+                    ctx.font = "11.7px Arial";
 
-                    ctx.moveTo(1 + that._margin, y);
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
+                    if (gasSwitch.isDeco) {
+                        ctx.strokeStyle = ctx.fillStyle = "#007d00";
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x, lineY);
 
-                    ctx.fillStyle = "#007800";
+                        ctx.moveTo(1 + that._margin, y);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    }
+
+                    ctx.fillStyle = "#009600";
                     ctx.arc(x, y, 4, 0, 2 * Math.PI);
                     ctx.fill();
 
-                    ctx.fillStyle = ctx.strokeStyle;
+                    if (gasSwitch.isDeco) {
+                        var text = "Deco Gas (" + Math.round(gasSwitch.gas.ppO * 100.0) + "% O2, ppO " + gasSwitch.ppO.toFixed(2) + ")";
+                        var textSize = ctx.measureText(text);
+                        var textStart = { x: x - textSize.width - 12, y: y - 14 };
 
-                    var text = "Deco Gas (" + Math.round(gasSwitch.gas.ppO * 100.0) + "% O2)";
-                    var textSize = ctx.measureText(text);
-                    var textStart = { x: x - textSize.width - 17, y: y - 14 };
+                        ctx.drawImage(image, textStart.x - image.width - 1, y - image.height);
+                        ctx.fillStyle = ctx.strokeStyle;
+                        ctx.fillText(text, textStart.x, textStart.y);
+                    }
 
-                    ctx.drawImage(image, textStart.x - image.width - 1, y - image.height);
-                    ctx.fillText(text, textStart.x, textStart.y);
+                    ctx.font = prevFont;
                 }
             };
             image.src = document.URL + "images/deco_tank.png";
         }
+    },
+
+    drawGasesGrapth: function () {
+        var ctx = this._context;
+        var diveRes = this._diveResult;
+        var prevPoint = null;
+
+        var graphHeight = this._canvasHeight - this._margin - this._marginTop;
+        var graphWidth = this._canvasWidth - 2 * this._margin;
+
+        var depthKoef = graphHeight / (diveRes.maxDepth + 5.0);
+        var timeKoef = graphWidth / this.getMaxDiveTime();
+
+        var lineColor = "#000078";
+
+        ctx.beginPath();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = this._colorDiveBottom;
+
+        var hex = function (x) {
+            var hexDigits = new Array
+                ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"); 
+            return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
+        }
+
+        for (var i = 0; i < diveRes.planPoints.length; i++) {
+            var point = diveRes.planPoints[i];
+
+            var x = 1 + this._margin + point.absoluteTime * timeKoef;
+            var y = this._marginTop + point.depth * depthKoef;
+
+            if (prevPoint != null) {
+
+                var colValue = 100;
+                for (var j = 0; j < diveRes.gasSwitches.length; j++) {
+                    var gasSwitch = diveRes.gasSwitches[j];
+                    if (prevPoint.divePoint.absoluteTime >= gasSwitch.absoluteTime) {
+                        colValue += 30;
+                        lineColor = "#00" + hex(colValue) + hex(colValue);
+                    }
+                }
+
+                // draw level
+                ctx.beginPath();
+                ctx.strokeStyle = lineColor;
+                ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            prevPoint = {
+                divePoint: point, pointXY: { x: x, y: y }
+            };
+        }
+
+        ctx.stroke();
+
+        for (var j = 0; j < diveRes.gasSwitches.length; j++) {
+            var gasSwitch = diveRes.gasSwitches[j];
+            var x = 1 + this._margin + gasSwitch.absoluteTime * timeKoef;
+            var y = this._marginTop + gasSwitch.depth * depthKoef;
+
+            ctx.beginPath();
+            ctx.lineWidth = 0;
+            ctx.fillStyle = "#009600";
+            ctx.arc(x, y, 7, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        /*
+        for (var i = 0; i < diveRes.planPoints.length; i++) {
+            var point = diveRes.planPoints[i];
+
+             for (var j = 0; j < diveRes.gasSwitch.length; j++) {
+                 var switch1 = diveRes.gasSwitch[j];
+
+                 switch.absoluteTime;
+             }
+
+            var x = 1 + this._margin + point.absoluteTime * timeKoef;
+            var y = this._marginTop + point.depth * depthKoef;
+
+            if (prevPoint != null) {
+                // draw level
+                ctx.beginPath();
+                ctx.strokeStyle = lineColor;
+                ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            prevPoint = {
+                divePoint: point, pointXY: { x: x, y: y }
+            };
+        }
+        */
     },
 
     drawDiveProfileGrapth: function () {
@@ -208,7 +364,7 @@
         var timeKoef = graphWidth / this.getMaxDiveTime();
 
         ctx.beginPath();
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = this._colorDiveBottom;
 
         for (var i = 0; i < diveRes.planPoints.length; i++) {

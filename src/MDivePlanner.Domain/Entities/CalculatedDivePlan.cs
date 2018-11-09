@@ -29,9 +29,9 @@ namespace MDivePlanner.Domain.Entities
 
         public double MaxEND { get; set; }
 
-        public IEnumerable<double> ConsumedBottomGases { get; set; }
+        public IEnumerable<ConsumedGas> ConsumedBottomGases { get; set; }
 
-        public IEnumerable<double> ConsumedDecoGases { get; set; }
+        public IEnumerable<ConsumedGas> ConsumedDecoGases { get; set; }
 
         public double OxygenCns { get; set; }
 
@@ -45,7 +45,9 @@ namespace MDivePlanner.Domain.Entities
 
         public object TissuesSaturationData { get; set; }
 
-        public IEnumerable<GasSwitch> DecoGasSwitches { get; set; }
+        public IEnumerable<GasSwitch> GasSwitches { get; set; }
+
+        public IEnumerable<LevelInfo> LevelsInfo { get; set; }
 
         public bool IsValid
         {
@@ -70,8 +72,8 @@ namespace MDivePlanner.Domain.Entities
             const double maxEnd = 60.0;
 
 
-            var bottomGases = string.Join("/", ConsumedBottomGases.Select(g => $"{Math.Ceiling(g)}"));
-            var decoGases = string.Join("/", ConsumedDecoGases?.Select(g => $"{Math.Ceiling(g)}") ?? new List<string>());
+            var bottomGases = string.Join("/", ConsumedBottomGases.Select(g => $"{Math.Ceiling(g.Amount)}"));
+            var decoGases = string.Join("/", ConsumedDecoGases?.Select(g => $"{Math.Ceiling(g.Amount)}") ?? new List<string>());
 
             var gasStr = string.Format("Consumed Gas: {0} ltr", bottomGases);
             if (ConsumedDecoGases?.Count() > 0)

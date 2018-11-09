@@ -142,27 +142,9 @@ namespace MDivePlanner.Domain.Logic
             double currentDepth = 0;
             double maxDepth = diveParameters.Levels.Max(l => l.Depth);
             var dynamicNoDecoDepthTime = new DepthTime();
+            var levelGas = diveParameters.Levels.First().Gas;
 
             AddDivePointInfo(totalTime, 0, 0, _diveParameters.Levels.First().Gas, true);
-
-            /*
-            // dive
-            while (true)
-            {
-                currentDepth += TimeStep * diveParameters.DiveConfig.MaxDescentSpeed;
-                if (currentDepth > maxDepth)
-                    currentDepth = maxDepth;
-
-                CalculateCompartmentPresures(TimeStep, currentDepth, diveParameters.Gas);
-                var ceilingDepth = GetCurrentCeilingDepth(currentDepth);
-
-                totalTime += TimeStep;
-                AddDivePointInfo(totalTime, ceilingDepth, currentDepth, _diveParameters.Gas);
-
-                if (totalTime >= diveParameters.Time)
-                    break;
-            }
-            */
 
             // dive
             foreach (var level in diveParameters.Levels)
@@ -188,11 +170,12 @@ namespace MDivePlanner.Domain.Logic
 
                     if (!levelReached && currentDepth > (level.Depth - 0.1) && currentDepth < (level.Depth + 0.1))
                     {
+                        levelGas = level.Gas;
                         levelReached = true;
                         levelReachedTime = totalTime;
                     }
 
-                    CalculateCompartmentPresures(TimeStep, currentDepth, level.Gas);
+                    CalculateCompartmentPresures(TimeStep, currentDepth, levelGas /*level.Gas*/);
                     var ceilingDepth = GetCurrentCeilingDepth(currentDepth);
                     if (currentDepth < ceilingDepth)
                         throw new Exception("Levels' depth above deco depth");
@@ -205,7 +188,7 @@ namespace MDivePlanner.Domain.Logic
                     }
 
                     totalTime += TimeStep;
-                    AddDivePointInfo(totalTime, ceilingDepth, currentDepth, level.Gas);
+                    AddDivePointInfo(totalTime, ceilingDepth, currentDepth, levelGas /*level.Gas*/);
 
                     if (levelReached && (totalTime - levelReachedTime) >= level.Time)
                         break;
@@ -359,7 +342,7 @@ namespace MDivePlanner.Domain.Logic
                 if (currentDepth < 0)
                     currentDepth = 0;
 
-                currGas = SelectGas(new DepthFactor(currentDepth, _waterDensity), decoStopDepth); 
+                currGas = SelectDecoGas(new DepthFactor(currentDepth, _waterDensity), decoStopDepth); 
 
                 if (currentDepth <= decoStopDepth)
                 {
@@ -490,7 +473,7 @@ namespace MDivePlanner.Domain.Logic
             return totalTime;
         }
 
-        private BreathGas SelectGas(DepthFactor currDepth, double decoStopDepth)
+        private BreathGas SelectDecoGas(DepthFactor currDepth, double decoStopDepth)
         {
             const double MaxDecoPpO = 1.6;
             const double OptimalDecoPpO = 1.5;
@@ -504,17 +487,36 @@ namespace MDivePlanner.Domain.Logic
 
             var gasesCanUse = new List<KeyValuePair<double, BreathGas>>(_diveParameters.DecoLevels.Count());
 
-            foreach (var decoLevel in _diveParameters.DecoLevels)
+            // explicit depth gases go first
+            var explicitDepthGases = _diveParameters.DecoLevels.Where(d => d.Depth > double.Epsilon);
+            if (explicitDepthGases.Any())
             {
-                var currDecoPpO = BreathGas.GetGasPartialPreasureForDepth(currDepth, decoLevel.Gas.PpO);
-                if (currDecoPpO <= decoPpO)
-                    gasesCanUse.Add(new KeyValuePair<double, BreathGas>(currDecoPpO, decoLevel.Gas));
+                var suitedDecoGases = explicitDepthGases.Where(d => currDepth.Depth <= d.Depth);
+                if (!suitedDecoGases.Any())
+                    return _diveParameters.Levels.Last().Gas;
+
+                var minDepth = explicitDepthGases.Where(d => currDepth.Depth <= d.Depth).Min(d => d.Depth);
+                var explicitDecoGas = explicitDepthGases.FirstOrDefault(d => DivingMath.CompareDouble(d.Depth, minDepth));
+
+                if (explicitDecoGas != null)
+                    return explicitDecoGas.Gas;
+                else
+                    return _diveParameters.Levels.Last().Gas;
             }
+            else
+            {
+                foreach (var decoLevel in _diveParameters.DecoLevels)
+                {
+                    var currDecoPpO = BreathGas.GetGasPartialPreasureForDepth(currDepth, decoLevel.Gas.PpO);
+                    if (currDecoPpO <= decoPpO)
+                        gasesCanUse.Add(new KeyValuePair<double, BreathGas>(currDecoPpO, decoLevel.Gas));
+                }
 
-            if (gasesCanUse.Count == 0)
-                return _diveParameters.Levels.Last().Gas;
+                if (gasesCanUse.Count == 0)
+                    return _diveParameters.Levels.Last().Gas;
 
-            return gasesCanUse.First(g => DivingMath.CompareDouble(g.Key, gasesCanUse.Max(k => k.Key))).Value;
+                return gasesCanUse.First(g => DivingMath.CompareDouble(g.Key, gasesCanUse.Max(k => k.Key))).Value;
+            }
         }
 
         private void AddDivePointInfo(double time, double celingDepth, double currDepth, BreathGas gas, bool forceAdd = false)

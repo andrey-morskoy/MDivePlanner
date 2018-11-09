@@ -54,8 +54,21 @@ namespace MDivePlanner.Domain.Entities
             return gasPreasure * partialPreasure;
         }
 
+        public override bool Equals(object obj)
+        {
+            return this.IsEqual(obj as BreathGas);
+        }
+
+        public override int GetHashCode()
+        {
+            return PpO.GetHashCode() ^ PpN.GetHashCode();
+        }
+
         public bool IsEqual(BreathGas gas)
         {
+            if (gas == null)
+                return false;
+
             return DivingMath.CompareDouble(PpHe, gas.PpHe) &&
                 DivingMath.CompareDouble(PpN, gas.PpN) &&
                 DivingMath.CompareDouble(PpO, gas.PpO);

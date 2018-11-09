@@ -93,14 +93,26 @@ namespace MDivePlannerWeb.Models
             DiveLevels[0].UseLevel = true;
             DiveLevels[0].Gas.PpO2 = 21;
             DiveLevels[0].Gas.PpHe = 0;
-            DiveLevels[0].Depth = 30;
-            DiveLevels[0].Time = 50;
+            DiveLevels[0].Depth = 40;
+            DiveLevels[0].Time = 30;
             DiveLevels[0].IsValid = true;
+
+            DecoLevels[1].UseLevel = true;
+            DecoLevels[1].Gas.PpO2 = 32;
+            DecoLevels[1].Gas.PpHe = 0;
+            DecoLevels[1].Depth = 10;
+            DecoLevels[1].IsValid = true;
+
+            DecoLevels[0].UseLevel = true;
+            DecoLevels[0].Gas.PpO2 = 21;
+            DecoLevels[0].Gas.PpHe = 0;
+            DecoLevels[0].Depth = 20;
+            DecoLevels[0].IsValid = true;
 
             MinDecoStopTime = MinDecoStops[0].Value;
             WaterDensity = 1000;
-            GradFactorLow = 100;
-            GradFactorHigh = 100;
+            GradFactorLow = 40;
+            GradFactorHigh = 80;
             AscentSpeed = 10;
             DescentSpeed = 20;
             SafetyStopDepth = 5;
@@ -219,6 +231,14 @@ namespace MDivePlannerWeb.Models
                 DecoLevelsValidationMessage = validateGas(level);
                 if (!string.IsNullOrEmpty(DecoLevelsValidationMessage))
                     break;
+            }
+
+            if (DecoLevels.Any(d => d.Depth > double.Epsilon))
+            {
+                if (!DecoLevels.Where(d => d.UseLevel).All(d => d.Depth > double.Epsilon))
+                {
+                    DecoLevelsValidationMessage = "Explicit depth must be present for all deco gases";
+                }
             }
 
             if (!DiveLevels.Any(l => l.UseLevel))
