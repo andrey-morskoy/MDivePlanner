@@ -265,17 +265,25 @@
         var depthKoef = graphHeight / (diveRes.maxDepth + 5.0);
         var timeKoef = graphWidth / this.getMaxDiveTime();
 
+        var hex = function (x) {
+            var hexDigits = new Array
+                ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f");
+            return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
+        }
+
+        var colValue = 70;
         var lineColor = "#000078";
+        lineColor = "#00" + hex(colValue) + hex(colValue);
 
         ctx.beginPath();
         ctx.lineWidth = 5;
         ctx.strokeStyle = this._colorDiveBottom;
 
-        var hex = function (x) {
-            var hexDigits = new Array
-                ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"); 
-            return isNaN(x) ? "00" : hexDigits[(x - x % 16) / 16] + hexDigits[x % 16];
-        }
+        ctx.beginPath();
+        ctx.lineWidth = 0;
+        ctx.fillStyle = lineColor;
+        ctx.arc(this._margin, this._marginTop, 8, 0, 2 * Math.PI);
+        ctx.fill();
 
         for (var i = 0; i < diveRes.planPoints.length; i++) {
             var point = diveRes.planPoints[i];
@@ -283,9 +291,13 @@
             var x = 1 + this._margin + point.absoluteTime * timeKoef;
             var y = this._marginTop + point.depth * depthKoef;
 
+            var drawed = false;
+
             if (prevPoint != null) {
 
-                var colValue = 100;
+                var prevLineColor = lineColor;
+
+                colValue = 100;
                 for (var j = 0; j < diveRes.gasSwitches.length; j++) {
                     var gasSwitch = diveRes.gasSwitches[j];
                     if (prevPoint.divePoint.absoluteTime >= gasSwitch.absoluteTime) {
@@ -294,12 +306,52 @@
                     }
                 }
 
-                // draw level
-                ctx.beginPath();
-                ctx.strokeStyle = lineColor;
-                ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
-                ctx.lineTo(x, y);
-                ctx.stroke();
+                for (var j = 0; j < diveRes.gasSwitches.length; j++) {
+                    var gasSwitch = diveRes.gasSwitches[j];
+
+                    if (gasSwitch.absoluteTime >= prevPoint.divePoint.absoluteTime && gasSwitch.absoluteTime <= point.absoluteTime) {
+
+                       // debugger;
+
+                        var gsX = 1 + this._margin + gasSwitch.absoluteTime * timeKoef;
+                        var gsY = this._marginTop + gasSwitch.depth * depthKoef;
+                 
+                        ctx.beginPath();
+                        ctx.strokeStyle = prevLineColor;
+                        ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
+                        ctx.lineTo(gsX, gsY);
+                        ctx.stroke();
+
+                        //colValue += 30;
+                        lineColor = "#00" + hex(colValue + 30) + hex(colValue + 30);
+
+                        ctx.beginPath();
+                        ctx.strokeStyle = lineColor;
+                        ctx.moveTo(gsX, gsY);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.lineWidth = 0;
+                        ctx.fillStyle = lineColor;
+                        ctx.arc(gsX, gsY, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        lineColor = prevLineColor;
+
+                        drawed = true;
+                        break;
+                    }
+                }
+
+                if (!drawed) {
+                    // draw level
+                    ctx.beginPath();
+                    ctx.strokeStyle = lineColor;
+                    ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
             }
 
             prevPoint = {
@@ -309,6 +361,7 @@
 
         ctx.stroke();
 
+        /*
         for (var j = 0; j < diveRes.gasSwitches.length; j++) {
             var gasSwitch = diveRes.gasSwitches[j];
             var x = 1 + this._margin + gasSwitch.absoluteTime * timeKoef;
@@ -319,7 +372,7 @@
             ctx.fillStyle = "#009600";
             ctx.arc(x, y, 7, 0, 2 * Math.PI);
             ctx.fill();
-        }
+        }*/
 
         /*
         for (var i = 0; i < diveRes.planPoints.length; i++) {

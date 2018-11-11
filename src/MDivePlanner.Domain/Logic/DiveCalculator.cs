@@ -294,7 +294,7 @@ namespace MDivePlanner.Domain.Logic
                         var rmv = (avgDepth <= firstStopDepth) ? _diveParameters.DiveConfig.DecoRmv : _diveParameters.DiveConfig.BottomRmv;
 
                         if (!gases.ContainsKey(point.CurrentGas))
-                            gases[point.CurrentGas] = new ConsumedGas();
+                            gases[point.CurrentGas] = new ConsumedGas() { Gas = point.CurrentGas };
 
                         gases[point.CurrentGas].Amount += rmv * preasure / DivingMath.SeaLevelPreasureBars * timeSpan;
                     }
