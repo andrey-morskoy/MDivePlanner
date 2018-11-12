@@ -162,6 +162,10 @@ table.result-table thead {
     background-image: linear-gradient(to bottom, #f3f3f3, #c6c6c6);
 }
 
+table.result-table tbody td span {
+    color: #808080;
+}
+
 table.result-table thead td {
     border: 1px solid #a5a5a5;
     border-collapse: collapse;
@@ -180,6 +184,18 @@ table.result-table tbody td {
     padding: 5px;
     padding-top: 3px;
     padding-bottom: 3px;
+}
+
+table.result-table tbody td.warning {
+    background-color: #fffbb4;
+}
+
+table.result-table tbody td.dangerous {
+    background-color: #ffebeb;
+}
+
+table.result-table tbody td.important {
+    font-weight: bold;
 }
 
 #OutputCanvas {

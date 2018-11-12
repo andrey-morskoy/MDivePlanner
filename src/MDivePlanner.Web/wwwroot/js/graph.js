@@ -294,18 +294,6 @@
             var drawed = false;
 
             if (prevPoint != null) {
-
-                var prevLineColor = lineColor;
-
-                colValue = 100;
-                for (var j = 0; j < diveRes.gasSwitches.length; j++) {
-                    var gasSwitch = diveRes.gasSwitches[j];
-                    if (prevPoint.divePoint.absoluteTime >= gasSwitch.absoluteTime) {
-                        colValue += 30;
-                        lineColor = "#00" + hex(colValue) + hex(colValue);
-                    }
-                }
-
                 for (var j = 0; j < diveRes.gasSwitches.length; j++) {
                     var gasSwitch = diveRes.gasSwitches[j];
 
@@ -315,15 +303,17 @@
 
                         var gsX = 1 + this._margin + gasSwitch.absoluteTime * timeKoef;
                         var gsY = this._marginTop + gasSwitch.depth * depthKoef;
-                 
+
+                        var prevLineColor = lineColor;
+
                         ctx.beginPath();
                         ctx.strokeStyle = prevLineColor;
                         ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
                         ctx.lineTo(gsX, gsY);
                         ctx.stroke();
 
-                        //colValue += 30;
-                        lineColor = "#00" + hex(colValue + 30) + hex(colValue + 30);
+                        colValue += 40;
+                        lineColor = "#00" + hex(colValue) + hex(colValue);
 
                         ctx.beginPath();
                         ctx.strokeStyle = lineColor;
@@ -336,8 +326,6 @@
                         ctx.fillStyle = lineColor;
                         ctx.arc(gsX, gsY, 8, 0, 2 * Math.PI);
                         ctx.fill();
-
-                        lineColor = prevLineColor;
 
                         drawed = true;
                         break;
@@ -361,46 +349,15 @@
 
         ctx.stroke();
 
-        /*
         for (var j = 0; j < diveRes.gasSwitches.length; j++) {
             var gasSwitch = diveRes.gasSwitches[j];
             var x = 1 + this._margin + gasSwitch.absoluteTime * timeKoef;
             var y = this._marginTop + gasSwitch.depth * depthKoef;
 
             ctx.beginPath();
-            ctx.lineWidth = 0;
-            ctx.fillStyle = "#009600";
-            ctx.arc(x, y, 7, 0, 2 * Math.PI);
-            ctx.fill();
-        }*/
-
-        /*
-        for (var i = 0; i < diveRes.planPoints.length; i++) {
-            var point = diveRes.planPoints[i];
-
-             for (var j = 0; j < diveRes.gasSwitch.length; j++) {
-                 var switch1 = diveRes.gasSwitch[j];
-
-                 switch.absoluteTime;
-             }
-
-            var x = 1 + this._margin + point.absoluteTime * timeKoef;
-            var y = this._marginTop + point.depth * depthKoef;
-
-            if (prevPoint != null) {
-                // draw level
-                ctx.beginPath();
-                ctx.strokeStyle = lineColor;
-                ctx.moveTo(prevPoint.pointXY.x, prevPoint.pointXY.y);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            }
-
-            prevPoint = {
-                divePoint: point, pointXY: { x: x, y: y }
-            };
+            ctx.fillStyle = "#000000";
+            ctx.fillText(gasSwitch.gas.name, x + 9, y + 3);
         }
-        */
     },
 
     drawDiveProfileGrapth: function () {

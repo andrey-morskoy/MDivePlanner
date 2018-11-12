@@ -49,6 +49,8 @@ namespace MDivePlanner.Domain.Entities
 
         public IEnumerable<LevelInfo> LevelsInfo { get; set; }
 
+        public IEnumerable<DiveResultBlock> DiveResultBlocks { get; set; }
+
         public bool IsValid
         {
             get { return (Errors == null || Errors.Count() == 0) && this.MaxDepth > 0 && this.BottomTime > 0; }
@@ -75,26 +77,19 @@ namespace MDivePlanner.Domain.Entities
             var bottomGases = string.Join("/", ConsumedBottomGases.Select(g => $"{Math.Ceiling(g.Amount)}"));
             var decoGases = string.Join("/", ConsumedDecoGases?.Select(g => $"{Math.Ceiling(g.Amount)}") ?? new List<string>());
 
-            var gasStr = string.Format("Consumed Gas: {0} ltr", bottomGases);
-            if (ConsumedDecoGases?.Count() > 0)
-            {
-                gasStr += $", {decoGases} ltr";
-            }
-
             var result = new List<DiveResultBlock>();
-            result.Add(new DiveResultBlock(string.Format("Dive Info: {0} metters - {1}/{2} (bottom/total) mins", 
-                    Math.Round(MaxDepth), Math.Round(BottomTime), Math.Round(TotalTime)), important: true, type: DiveResultBlockType.DepthTime));
+            result.Add(new DiveResultBlock(string.Format("{0} metters - {1}/{2} (bottom/total) mins",
+                    Utils.DoubleToString(MaxDepth, 1), Math.Round(BottomTime), Math.Round(TotalTime)), important: true, type: DiveResultBlockType.DepthTime));
 
             var hasDeco = PlanPoints.Any(p => (p.Type & DivePlanPointType.Deco) == DivePlanPointType.Deco);
             result.Add(new DiveResultBlock(hasDeco ? "With Deco" : "No Deco", warning: hasDeco));
 
-            result.Add(new DiveResultBlock(string.Format("Max ppO: {0} ata", Utils.DoubleToString(MaxPpO)), MaxPpO > maxPpO, type: DiveResultBlockType.MaxPpO));
-            result.Add(new DiveResultBlock(gasStr, type: DiveResultBlockType.ConsumedGas));
-            result.Add(new DiveResultBlock(string.Format("CNS: {0}%", Utils.DoubleToString(OxygenCns)), OxygenCns >= maxCns, type: DiveResultBlockType.CNS));
-            result.Add(new DiveResultBlock(string.Format("END: {0} m", Utils.DoubleToString(MaxEND)), warning: MaxEND > maxEnd, type: DiveResultBlockType.END));
-            result.Add(new DiveResultBlock(string.Format("Max No Deco Time: {0} mins", Math.Round(MaxNoDecoDepthTime.Time)), type: DiveResultBlockType.NoDecoTime));
-            result.Add(new DiveResultBlock(string.Format("Acsent Time: {0} mins", Math.Round(TotalTime - BottomTime)), type: DiveResultBlockType.AscentTime));
-            result.Add(new DiveResultBlock(string.Format("Full Desaturation: {0} hours", Math.Round(FullDesaturationTime / 60)), type: DiveResultBlockType.FullDesaturation));
+            result.Add(new DiveResultBlock(string.Format("{0} ata", Utils.DoubleToString(MaxPpO)), MaxPpO > maxPpO, type: DiveResultBlockType.MaxPpO));
+            result.Add(new DiveResultBlock(string.Format("{0}%", Utils.DoubleToString(OxygenCns)), OxygenCns >= maxCns, type: DiveResultBlockType.CNS));
+            result.Add(new DiveResultBlock(string.Format("{0} m", Utils.DoubleToString(MaxEND)), warning: MaxEND > maxEnd, type: DiveResultBlockType.END));
+            result.Add(new DiveResultBlock(string.Format("{0} mins", Math.Round(MaxNoDecoDepthTime.Time)), type: DiveResultBlockType.NoDecoTime));
+            result.Add(new DiveResultBlock(string.Format("{0} mins", Math.Round(TotalTime - BottomTime)), type: DiveResultBlockType.AscentTime));
+            result.Add(new DiveResultBlock(string.Format("{0} hours", Math.Round(FullDesaturationTime / 60)), type: DiveResultBlockType.FullDesaturation));
 
             return result;
         }

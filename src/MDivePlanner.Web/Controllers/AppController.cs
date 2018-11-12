@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using MDivePlanner.Domain.Entities;
 using MDivePlanner.Domain.Interfaces;
 using MDivePlannerWeb.Models;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace MDivePlannerWeb.Controllers
 {
+    [Route("app")]
     public class AppController : Controller
     {
         private const string DiveResult = "DiveResult";
@@ -27,13 +29,13 @@ namespace MDivePlannerWeb.Controllers
             ViewBag.DiveResultErrors = string.Empty;
         }
 
-        // GET: /<controller>/
+        [HttpGet("/")]
         public IActionResult Index()
         {
             return View(new AppModel());
         }
 
-        [HttpPost]
+        [HttpPost("/[controller]/params")]
         public IActionResult SetParams(DiveParamsModel model)
         {
             model.IsModelValid = ModelState.IsValid;
@@ -50,7 +52,9 @@ namespace MDivePlannerWeb.Controllers
                         ContractResolver = new CamelCasePropertyNamesContractResolver()                        
                     };
 
-                    ViewBag.DiveResult = JsonConvert.SerializeObject(diveResult, jsonSettings);
+                    var result = JsonConvert.SerializeObject(diveResult, jsonSettings);
+                    ViewBag.DiveResult = result;
+                    HttpContext.Session.SetString(DiveResult, result);
                 }
                 catch(Exception ex)
                 {
@@ -61,5 +65,19 @@ namespace MDivePlannerWeb.Controllers
 
             return PartialView("DiveParams", model);
         }
+
+        [HttpGet("/[controller]/result")]
+        public JsonResult GetResult()
+        {
+            var lastDive = HttpContext.Session.GetString(DiveResult);
+            if (!string.IsNullOrEmpty(lastDive))
+            {
+                var jsonObj = JsonConvert.DeserializeObject<CalculatedDivePlan>(lastDive);
+                return Json(jsonObj);
+            }
+
+            return Json(new { noData = true });
+        }
+
     }
 }

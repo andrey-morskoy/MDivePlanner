@@ -29,7 +29,14 @@ namespace MDivePlannerWeb
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-         
+
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => 
+            {
+                options.Cookie.Name = "DivePlannerWeb.Session";
+                options.IdleTimeout = TimeSpan.FromHours(1);
+            });
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddSingleton<IDecoAlgorythm, Zhl16Algorithm>();
@@ -52,7 +59,7 @@ namespace MDivePlannerWeb
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
+            app.UseSession();
 
             app.UseMvc(routes => 
             {

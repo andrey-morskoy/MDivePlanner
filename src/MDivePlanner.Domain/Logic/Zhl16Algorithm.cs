@@ -175,7 +175,7 @@ namespace MDivePlanner.Domain.Logic
                         levelReachedTime = totalTime;
                     }
 
-                    CalculateCompartmentPresures(TimeStep, currentDepth, levelGas /*level.Gas*/);
+                    CalculateCompartmentPresures(TimeStep, currentDepth, levelGas);
                     var ceilingDepth = GetCurrentCeilingDepth(currentDepth);
                     if (currentDepth < ceilingDepth)
                         throw new Exception("Levels' depth above deco depth");
@@ -188,7 +188,7 @@ namespace MDivePlanner.Domain.Logic
                     }
 
                     totalTime += TimeStep;
-                    AddDivePointInfo(totalTime, ceilingDepth, currentDepth, levelGas /*level.Gas*/);
+                    AddDivePointInfo(totalTime, ceilingDepth, currentDepth, levelGas);
 
                     if (levelReached && (totalTime - levelReachedTime) >= level.Time)
                         break;
@@ -274,6 +274,7 @@ namespace MDivePlanner.Domain.Logic
                 const double intervalTimeStep = 1.0;
                 double time = 0;
 
+                // go through surface interval
                 while(true)
                 {
                     CalculateCompartmentPresures(intervalTimeStep, 0, _airGas);

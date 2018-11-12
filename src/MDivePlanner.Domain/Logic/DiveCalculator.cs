@@ -193,7 +193,6 @@ namespace MDivePlanner.Domain.Logic
             // end dive
             points.Add(new DivePlanPoint { Depth = 0, AbsoluteTime = totalTime, Type = DivePlanPointType.EndDive, Gas = new BreathGas() });
 
-            var consumedGas = CalculateConsumedGas(diveResult);
             var gasSwitches = new List<GasSwitch>();
 
             plan.FullDesaturationTime = diveResult.FullDesaturationTime;
@@ -202,8 +201,6 @@ namespace MDivePlanner.Domain.Logic
             plan.MaxNoDecoDepthTime = diveResult.MaxNoDecoDepthTime;
             plan.DynamicNoDecoDepthTime = diveResult.DynamicNoDecoDepthTime;
             plan.IntervalTime = _diveParameters.IntervalTime;
-            plan.ConsumedBottomGases = consumedGas.Key;
-            plan.ConsumedDecoGases = consumedGas.Value;
             plan.OxygenCns = OxygenToxicityCalculator.CalulateOxygenCns(diveResult.DivePoints);
             plan.MaxEND = _diveParameters.Levels.Max(l => DivingMath.CalculateEND(l.DepthFactor, l.Gas));
             plan.GasSwitches = gasSwitches;
@@ -267,13 +264,20 @@ namespace MDivePlanner.Domain.Logic
                 plan.CeilingDepthPoints = ceilingDepthPoints;
             }
 
+            var consumedGas = CalculateConsumedGas(diveResult, gasSwitches);
+            plan.ConsumedBottomGases = consumedGas.Key;
+            plan.ConsumedDecoGases = consumedGas.Value;
+            plan.DiveResultBlocks = plan.GetDiveInfo();
+
             return plan;
         }
 
-        private KeyValuePair<IEnumerable<ConsumedGas>, IEnumerable<ConsumedGas>> CalculateConsumedGas(CalculatedDiveResult diveResult)
+        private KeyValuePair<IEnumerable<ConsumedGas>, IEnumerable<ConsumedGas>> CalculateConsumedGas(
+            CalculatedDiveResult diveResult, IEnumerable<GasSwitch> gasSwitches)
         {
             DivePoint? prevPoint = null;
-            var gases = new Dictionary<BreathGas, ConsumedGas>(sizeof(double));
+            var bottomGases = new Dictionary<BreathGas, ConsumedGas>(sizeof(double));
+            var decoGases = new Dictionary<BreathGas, ConsumedGas>(sizeof(double));
 
             var firstStopDepth = diveResult.DecoStops?.Any() == true ? diveResult.DecoStops.Max(s => s.Depth) : 0;
             if (firstStopDepth < double.Epsilon)
@@ -292,6 +296,9 @@ namespace MDivePlanner.Domain.Logic
                     {
                         var preasure = DivingMath.DepthToPreasureBars(new DepthFactor(avgDepth, point.DepthFactor.WaterDensity));
                         var rmv = (avgDepth <= firstStopDepth) ? _diveParameters.DiveConfig.DecoRmv : _diveParameters.DiveConfig.BottomRmv;
+                        
+                        var decoSwitchTime = gasSwitches.FirstOrDefault(gs => gs.IsDeco)?.AbsoluteTime ?? 0.0;
+                        var gases = (point.CurrentDiveTime >= decoSwitchTime) ? decoGases : bottomGases;
 
                         if (!gases.ContainsKey(point.CurrentGas))
                             gases[point.CurrentGas] = new ConsumedGas() { Gas = point.CurrentGas };
@@ -303,56 +310,7 @@ namespace MDivePlanner.Domain.Logic
                 prevPoint = point;
             }
 
-            /*
-            double consumedGas = 0;
-            var consumedDecoGases = new double[_diveParameters.DecoLevels.Count()];
-            DivePoint? prevPoint = null;
-            var bottomReached = false;
-
-            var firstStopDepth = diveResult.DecoStops?.Any() == true ? diveResult.DecoStops.Max(s => s.Depth) : 0;
-            if (firstStopDepth < double.Epsilon)
-                firstStopDepth = _diveParameters.DiveConfig.SafeStopDepth;
-
-            foreach (var point in diveResult.DivePoints)
-            {
-                if (prevPoint != null)
-                {
-                    var avgDepth = (prevPoint.Value.DepthFactor.Depth + point.DepthFactor.Depth) * 0.5;
-                    if (avgDepth <= double.Epsilon)
-                        break;
-
-                    if (DivingMath.CompareDouble(point.DepthFactor.Depth, _diveParameters.DepthFactor.Depth))
-                        bottomReached = true;
-
-                    var timeSpan = point.CurrentDiveTime - prevPoint.Value.CurrentDiveTime;
-                    if (timeSpan > 0)
-                    {
-                        var preasure = DivingMath.DepthToPreasureBars(new DepthFactor(avgDepth, point.DepthFactor.WaterDensity));
-                        var rmv = (avgDepth <= firstStopDepth && bottomReached) ? _diveParameters.DiveConfig.DecoRmv : _diveParameters.DiveConfig.BottomRmv;
-
-                        if (point.CurrentGas.CompareTo(_diveParameters.Gas))
-                            consumedGas += rmv * preasure / DivingMath.SeaLevelPreasureBars * timeSpan;
-
-                        if (_diveParameters.DecoLevels.Count() > 0)
-                        {
-                            int ind = 0;
-                            foreach (var decoLevel in _diveParameters.DecoLevels)
-                            {
-                                if (point.CurrentGas.CompareTo(decoLevel.Gas))
-                                    consumedDecoGases[ind] += rmv * preasure / DivingMath.SeaLevelPreasureBars * timeSpan;
-                                ++ind;
-                            }
-                        }
-                    }
-                }
-
-                prevPoint = point;
-            }
-
-            return new KeyValuePair<double, IEnumerable<double>>(consumedGas, consumedDecoGases);
-            */
-
-            return new KeyValuePair<IEnumerable<ConsumedGas>, IEnumerable<ConsumedGas>>(gases.Values, new List<ConsumedGas>());
+            return new KeyValuePair<IEnumerable<ConsumedGas>, IEnumerable<ConsumedGas>>(bottomGases.Values, decoGases.Values);
         }
     }
 }

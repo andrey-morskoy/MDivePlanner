@@ -13,6 +13,22 @@ var DivePlanPointType = {
         return (point.type & pointType) == pointType;
     }
 };
+
+var DiveResultBlockType = {
+    withDeco: 0,
+    depthTime: 1,
+    mainGas: 2,
+    decoGases: 3,
+    cns: 4,
+    end: 5,
+    consumedGas: 6,
+    maxPpO: 7,
+    fullDesaturation: 8,
+    noDecoTime: 9,
+    ascentTime: 10
+};
+
+
 /*
 function DivePlanPointType() {
     this.startDive = 2;
