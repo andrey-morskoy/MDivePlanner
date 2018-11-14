@@ -173,9 +173,7 @@ table.result-table thead td {
     padding-left: 7px;
     padding-right: 7px;
     line-height: 20px;
-    padding: 5px;
-    padding-top: 3px;
-    padding-bottom: 3px;
+    padding: 3px 5px 3px 5px;
 }
 
 table.result-table tbody td {

@@ -1,13 +1,13 @@
 using System;
 using MDivePlanner.Domain.Interfaces;
 using MDivePlanner.Domain.Logic;
-using MDivePlanner.Domain.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation.AspNetCore;
 
 namespace MDivePlannerWeb
 {
@@ -37,7 +37,8 @@ namespace MDivePlannerWeb
                 options.IdleTimeout = TimeSpan.FromHours(1);
             });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+                .AddFluentValidation(fvc => fvc.RegisterValidatorsFromAssemblyContaining<Startup>());
 
             services.AddSingleton<IDecoAlgorythm, Zhl16Algorithm>();
             services.AddSingleton<IDiveCalculator, DiveCalculator>();
@@ -58,6 +59,7 @@ namespace MDivePlannerWeb
             }
 
             app.UseHttpsRedirection();
+            app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseSession();
 
