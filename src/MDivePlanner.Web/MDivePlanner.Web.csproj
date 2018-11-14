@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AspNetCoreHostingModel>inprocess</AspNetCoreHostingModel>
+    <TypeScriptToolsVersion>3.1</TypeScriptToolsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +19,11 @@
     <EmbeddedResource Remove="Domain_\**" />
     <None Remove="Domain\**" />
     <None Remove="Domain_\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Scripts\application.ts" />
+    <None Remove="Scripts\appTypes.ts" />
   </ItemGroup>
 
 
@@ -31,6 +41,12 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\application.ts" />
+    <TypeScriptCompile Include="Scripts\appTypes.ts" />
   </ItemGroup>
 
 </Project>
