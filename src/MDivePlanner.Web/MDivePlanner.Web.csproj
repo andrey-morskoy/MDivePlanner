@@ -24,6 +24,7 @@
   <ItemGroup>
     <None Remove="Scripts\application.ts" />
     <None Remove="Scripts\appTypes.ts" />
+    <None Remove="Scripts\Graph.ts" />
   </ItemGroup>
 
 
@@ -47,6 +48,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\application.ts" />
     <TypeScriptCompile Include="Scripts\appTypes.ts" />
+    <TypeScriptCompile Include="Scripts\graph.ts" />
   </ItemGroup>
 
 </Project>
