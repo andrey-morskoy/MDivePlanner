@@ -23,10 +23,6 @@ export enum DiveResultBlockType {
     ascentTime = 10
 }
 
-export function HasPoint(point: any, pointType: DivePlanPointType) {
-    return (point.type & pointType) == pointType;
-}
-
 export class Color {
     private static _hexDigits: Array<string> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
     private _color: string = "";
@@ -59,6 +55,12 @@ export class Color {
         return `#${this.hex(r)}${this.hex(g)}${this.hex(b)}`;
     }
 
+    public static from(all: number): string {
+        all = this.checkVal(all);
+
+        return `#${this.hex(all)}${this.hex(all)}${this.hex(all)}`;
+    }
+
     private static hex(val: number): string {
         const hexMax = 16;
         return isNaN(val) ? "00" : Color._hexDigits[(val - val % hexMax) / hexMax] + Color._hexDigits[val % hexMax];
@@ -71,5 +73,43 @@ export class Color {
         if (val > max)
             val = max;
         return val;
+    }
+}
+
+export class Utils {
+    private constructor() { }
+
+    public static HasPoint(point: any, pointType: DivePlanPointType): boolean {
+        return (point.type & pointType) == pointType;
+    }
+
+    // returns "hh:mm"
+    public static getTimeHrsStr(timeMins: number): string {
+        let hrsStr = Math.floor(timeMins / 60).toString();
+        if (hrsStr.length == 1)
+            hrsStr = "0" + hrsStr;
+
+        let minsStr = (timeMins % 60).toString();
+        if (minsStr.length == 1)
+            minsStr = "0" + minsStr;
+
+        return `${hrsStr}:${minsStr}`;
+    }
+
+    // returns "mm:ss"
+    public static getTimeMinsStr(timeMins: number): string {
+        let totalMins = Math.floor(timeMins).toString();
+        if (totalMins.length == 1)
+            totalMins = "0" + totalMins;
+
+        let secsPart = timeMins - Math.floor(timeMins);
+        let secs = "00"
+        if (secsPart > Number.EPSILON) {
+            secs = Math.round(secsPart * 60.0).toString();
+            if (secs.length == 1)
+                secs = "0" + secs;
+        }
+
+        return `${totalMins}:${secs}`;
     }
 }

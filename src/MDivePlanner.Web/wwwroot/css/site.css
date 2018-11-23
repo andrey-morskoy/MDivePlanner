@@ -64,6 +64,10 @@ div.floatLeft {
     float: left;
 }
 
+div.floatRight {
+    float: right;
+}
+
 .button {
     background-color: #1a90ff;
     background-image: linear-gradient(to bottom, #1a90ff, #0056a5);

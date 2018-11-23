@@ -2,6 +2,8 @@ import { DiveResultBlockType } from './appTypes.js';
 import { DiveGraph } from './graph.js';
 class Application {
     constructor() {
+        this._grapth = new DiveGraph($("#OutputCanvas")[0]);
+        this._grapth.reset();
         let context = this;
         this.overwatchLevelTables();
         $("#SubmitDiveParams").click((e) => {
@@ -23,18 +25,21 @@ class Application {
             };
             $(".levels .levelsTable input.levelValid").each((i, elem) => { markInvalid(elem); });
             $(".decoLevels .levelsTable input.levelValid").each((i, elem) => { markInvalid(elem); });
+            $("table.result-table.table1 tbody").html("");
+            $("table.result-table.table2 tbody").html("");
             let valid = $("#DiveParamsValid", result).val() == "true";
             if (valid) {
-                $("table.result-table tbody").html("");
                 this.apiCall("/app/result", null, "json", "get", result => {
                     context.fillResultTable(result);
                     context.onGotResult(result);
                 });
             }
+            else {
+                this._grapth.reset();
+            }
         });
     }
     onGotResult(result) {
-        let canvas = $("#OutputCanvas")[0];
         let errorOutput = $("#divePlanResultErrorsOutput");
         try {
             let serverError = $("#divePlanResultErrors").val().toString();
@@ -43,7 +48,7 @@ class Application {
                 errorOutput.text("No data from server");
             }
             else {
-                let grapth = new DiveGraph(canvas, result);
+                this._grapth.draw(result, false);
             }
         }
         catch (x) {
@@ -98,19 +103,15 @@ class Application {
         }
     }
     getConsumedGases(diveResult) {
-        let text = "";
         let addGases = (gases) => {
-            for (let i = 0; i < gases.length; i++) {
-                let gas = gases[i];
-                text += `<span> ${gas.gas.name}:</span> ${Math.ceil(gas.amount)} ltrs`;
-                if (i < (gases.length - 1))
-                    text += ", ";
-            }
+            let res = new Array();
+            for (let gas of gases)
+                res.push(`<span> ${gas.gas.name}:</span> ${Math.ceil(gas.amount)} ltrs`);
+            return res.join(", ");
         };
-        addGases(diveResult.consumedBottomGases);
+        let text = addGases(diveResult.consumedBottomGases);
         if (diveResult.consumedDecoGases && diveResult.consumedDecoGases.length > 0) {
-            text += ", ";
-            addGases(diveResult.consumedDecoGases);
+            text += ", " + addGases(diveResult.consumedDecoGases);
         }
         return text;
     }

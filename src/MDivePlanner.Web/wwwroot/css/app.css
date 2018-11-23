@@ -206,6 +206,10 @@ table.result-table tbody td.important {
     width: 100px;
 }
 
+#SaveDive {
+    width: 100px;
+}
+
 #GraphSwitch {
     height: 24px;
     font-size: 14px;

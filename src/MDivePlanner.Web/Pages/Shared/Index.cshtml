@@ -19,7 +19,13 @@
                     <partial name="DiveParams" model="Model.DiveParamsModel" />
                 </div>
                 <div class="buttonsPanel">
-                    <button id="SubmitDiveParams" class="button" type="button">Calculate</button>
+                    <div class="floatLeft">
+                        <button id="SubmitDiveParams" class="button" type="button">Calculate</button>
+                    </div>
+                    <div class="floatRight" style="text-align: right">
+                        <button id="SaveDive" class="button" type="button">Save Dive</button>
+                    </div>
+                    <div class="clear"></div>
                 </div>
             </form>
         </div>
@@ -46,11 +52,11 @@
                     <td>Ascent Time</td>
                     <td>Full Desaturation</td>
                 </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-            <button id="GraphSwitch" style="position: absolute; top: -50px;">Gases</button>
-            <canvas id="OutputCanvas" width="1024" height="768"></canvas>
-        </div>
+        <button id="GraphSwitch" style="position: absolute; top: -50px;">Gases</button>
+        <canvas id="OutputCanvas" width="1024" height="768"></canvas>
     </div>
+</div>

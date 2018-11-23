@@ -7,6 +7,7 @@ using MDivePlanner.Domain.Interfaces;
 using MDivePlannerWeb.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -19,7 +20,7 @@ namespace MDivePlannerWeb.Controllers
     {
         private const string DiveResult = "DiveResult";
 
-        private IDiveCalculator _diveCalc;
+        private readonly IDiveCalculator _diveCalc;
 
         public AppController(IDiveCalculator diveCalculator)
         {
@@ -64,6 +65,14 @@ namespace MDivePlannerWeb.Controllers
             }
 
             return PartialView("DiveParams", model);
+        }
+
+        [HttpPost("/[controller]/dive")]
+        public JsonResult SaveDive()
+        {
+
+
+            return Json(new { DiveName = "" });
         }
 
         [HttpGet("/[controller]/result")]
