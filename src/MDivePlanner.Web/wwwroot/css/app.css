@@ -89,12 +89,12 @@ input[type=checkbox].input-validation-error {
     border-bottom: 0;
     padding-left: 7px;
     padding-right: 7px;
-    line-height: 20px;
+    line-height: 14px;
 }
 
 .diveParams .levelsTable thead {
     background-color: #f3f3f3;
-    background-image: linear-gradient(to bottom, #f3f3f3, #c6c6c6);
+    background-image: linear-gradient(to bottom, #f3f3ff, #c6c6c9);
 }
 
 .diveParams .levelsTable .body td {
@@ -159,7 +159,7 @@ table.result-table {
 
 table.result-table thead {
     background-color: #f3f3f3;
-    background-image: linear-gradient(to bottom, #f3f3f3, #c6c6c6);
+    background-image: linear-gradient(to bottom, #f3f3ff, #c6c6c9);
 }
 
 table.result-table tbody td span {
@@ -203,14 +203,26 @@ table.result-table tbody td.important {
 }
 
 #SubmitDiveParams {
-    width: 100px;
+    width: 110px;
 }
 
 #SaveDive {
-    width: 100px;
+    width: 90px;
 }
 
 #GraphSwitch {
     height: 24px;
     font-size: 14px;
+}
+
+#SavedDives {
+    width: 150px;
+    margin-right: 10px;
+    position: relative;
+    top: 2px;
+}
+
+#ResetDives {
+    width: 90px;
+    margin-left: 5px;
 }

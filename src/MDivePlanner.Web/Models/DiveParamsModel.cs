@@ -76,7 +76,43 @@ namespace MDivePlannerWeb.Models
             };
         }
 
-        public void FillDefault()
+        public DiveParamsModel(DiveParameters diveParams) : this()
+        {
+            MinDecoStopTime = diveParams.DiveConfig.MinDecoTime.ToString();
+            WaterDensity = diveParams.Levels.First().DepthFactor.WaterDensity;
+            GradFactorLow = Math.Round(diveParams.DiveConfig.GradFactorLow * 100.0);
+            GradFactorHigh = Math.Round(diveParams.DiveConfig.GradFactorHigh * 100.0);
+
+            AscentSpeed = diveParams.DiveConfig.MaxAscentSpeed;
+            DescentSpeed = diveParams.DiveConfig.MaxDescentSpeed;
+            SafetyStopDepth = diveParams.DiveConfig.SafeStopDepth;
+            SafetyStopTime = diveParams.DiveConfig.SafeStopTime;
+            RmvBottom = diveParams.DiveConfig.BottomRmv;
+            RmvDeco = diveParams.DiveConfig.DecoRmv;
+            Algorythm = diveParams.DiveConfig.AlgoSubType.ToString();
+
+            int levelInd = 0;
+
+            foreach (var level in diveParams.Levels)
+            {
+                DiveLevels[levelInd].Depth = level.Depth;
+                DiveLevels[levelInd].Time = level.Time;
+                DiveLevels[levelInd].UseLevel = true;
+                DiveLevels[levelInd].Gas = new GasModel(level.Gas);
+                ++levelInd;
+            }
+
+            levelInd = 0;
+            foreach (var level in diveParams.DecoLevels)
+            {
+                DecoLevels[levelInd].Depth = level.Depth;
+                DecoLevels[levelInd].UseLevel = true;
+                DecoLevels[levelInd].Gas = new GasModel(level.Gas);
+                ++levelInd;
+            }
+        }
+
+        public DiveParamsModel FillDefault()
         {
             DiveLevels[0].UseLevel = true;
             DiveLevels[0].Gas.PpO2 = 21;
@@ -108,6 +144,8 @@ namespace MDivePlannerWeb.Models
             RmvBottom = 20; 
             RmvDeco = 18;
             Algorythm = Zhl16Algorithm.SubType.C.ToString();
+
+            return this;
         }
 
         public DiveParameters GetDiveParameters()

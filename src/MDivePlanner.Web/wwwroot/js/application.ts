@@ -3,6 +3,7 @@ import { DiveGraph } from './graph.js'
 
 class Application {
     private readonly _grapth: DiveGraph;
+    private readonly _newDiveId: string = "new-dive";
 
     constructor() {
         this._grapth = new DiveGraph($("#OutputCanvas")[0] as HTMLCanvasElement);
@@ -11,15 +12,108 @@ class Application {
         let context: Application = this;
         this.overwatchLevelTables();
 
-        $("#SubmitDiveParams").click((e) => {
+        $("#SubmitDiveParams").click(e => {
             e.preventDefault();
             context.calculateDive();
+        });
+
+        $("#SaveDive").click(e => {
+            e.preventDefault();
+            context.saveDive();
+        });
+
+        $("#SavedDives").on("change", function () {
+            if ($(this).val() == context._newDiveId)
+                context.startNewDive();
+            else
+                context.loadDive(Number.parseInt($(this).val().toString()));
+        });
+
+        $("#ResetDives").click(e => {
+            e.preventDefault();
+            context.resetDives();
+        });
+    }
+
+    private resetDives(): void {
+        this.apiCall("/app/newdive?resetAll=true", null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+
+            $("table.result-table.table1 tbody").html("");
+            $("table.result-table.table2 tbody").html("");
+
+            this._grapth.reset();
+
+            $("#SavedDives").html("");
+            $("#SavedDives").append($('<option>', {
+                value: this._newDiveId,
+                text: "New Dive",
+                selected: 'selected'
+            }));
+        });
+    }
+
+    private loadDive(id: number): void {
+        this.apiCall("/app/loaddive?id=" + id, null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+
+            this.calculateDive();
+        });
+    }
+
+    private startNewDive(): void {
+        this.apiCall("/app/newdive", null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+
+            $("table.result-table.table1 tbody").html("");
+            $("table.result-table.table2 tbody").html("");
+
+            this._grapth.reset();
+        });
+    }
+
+    private saveDive(): void {
+        let context: Application = this;
+        this.apiCall("/app/dive", null, "", "post", result =>
+        {
+            if (result.diveName) {
+                var options = $("#SavedDives option");
+                let found = false;
+                for (let opt of options) {
+                    if ($(opt).attr("value") == result.diveId) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    options.removeAttr('selected');
+
+                    $("#SavedDives").append($('<option>', {
+                        value: result.diveId,
+                        text: result.diveName,
+                        selected: 'selected'
+                    }));
+                }
+            }
+            else {
+                alert("There is no current dive to save");
+            }
         });
     }
 
     private calculateDive() : void {
         let context: Application = this;
-        this.apiCall("/app/params", $("#SubmitDiveParamsForm").serialize(), "", "post", result => {
+        let diveId = $("#SavedDives").val();
+        let idParam = "";
+
+        if (diveId != this._newDiveId)
+            idParam = "?id=" + diveId;
+
+        this.apiCall("/app/calculate" + idParam, $("#SubmitDiveParamsForm").serialize(), "", "post", result => {
             $("#DiveParamsContainer").html(result);
 
             this.overwatchLevelTables();
@@ -42,7 +136,7 @@ class Application {
             if (valid) {
                 this.apiCall("/app/result", null, "json", "get", result => {
                     context.fillResultTable(result);
-                    context.onGotResult(result);
+                    context.onGotResult(result, diveId.toString());
                 });
             }
             else {
@@ -51,7 +145,7 @@ class Application {
         });
     }
 
-    private onGotResult(result) : void {
+    private onGotResult(result: any, id: string): void {
         let errorOutput = $("#divePlanResultErrorsOutput");
 
         try {
@@ -62,6 +156,11 @@ class Application {
                 errorOutput.text("No data from server");
             }
             else {
+                if (id != this._newDiveId) {
+                    $("#SavedDives :selected").text(result.description);
+                }
+
+
                 this._grapth.draw(result, false);
             }
         }

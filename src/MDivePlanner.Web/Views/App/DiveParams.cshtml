@@ -177,6 +177,5 @@
     @Html.ValidationSummary(true)
 
     <input type="hidden" id="DiveParamsValid" value="@{ @Model.IsModelValid.ToString().ToLower() }" />
-    <input type="hidden" id="divePlanResult" value='@Html.Raw(@ViewBag.DiveResult)' />
     <input type="hidden" id="divePlanResultErrors" value='@Html.Raw(@ViewBag.DiveResultErrors)' />
 </div>

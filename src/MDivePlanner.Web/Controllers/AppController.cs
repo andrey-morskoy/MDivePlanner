@@ -4,14 +4,13 @@ using System.Globalization;
 using System.Linq;
 using MDivePlanner.Domain.Entities;
 using MDivePlanner.Domain.Interfaces;
+using MDivePlanner.Web.App;
 using MDivePlannerWeb.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MDivePlannerWeb.Controllers
 {
@@ -21,10 +20,14 @@ namespace MDivePlannerWeb.Controllers
         private const string DiveResult = "DiveResult";
 
         private readonly IDiveCalculator _diveCalc;
-
-        public AppController(IDiveCalculator diveCalculator)
+        private readonly IMemoryCache _memCache;
+        private readonly DivesManager _divesManager;
+        
+        public AppController(IDiveCalculator diveCalculator, IMemoryCache memCache, DivesManager divesManager)
         {
             _diveCalc = diveCalculator;
+            _divesManager = divesManager;
+            _memCache = memCache;
 
             ViewBag.DiveResult = "";
             ViewBag.DiveResultErrors = string.Empty;
@@ -33,11 +36,12 @@ namespace MDivePlannerWeb.Controllers
         [HttpGet("/")]
         public IActionResult Index()
         {
+            HttpContext.Session.SetInt32("dummy", DateTime.Now.Second);
             return View(new AppModel());
         }
 
-        [HttpPost("/[controller]/params")]
-        public IActionResult SetParams(DiveParamsModel model)
+        [HttpPost("/[controller]/calculate")]
+        public IActionResult Calculate(DiveParamsModel model, [FromQuery] int? id = null)
         {
             model.IsModelValid = ModelState.IsValid;
 
@@ -45,7 +49,9 @@ namespace MDivePlannerWeb.Controllers
             {
                 try
                 {
-                    var diveResult = _diveCalc.Calculate(null, model.GetDiveParameters());
+                    var prevDive = _divesManager.GetPreviousDive(id);
+                    var diveResult = _diveCalc.Calculate(prevDive, model.GetDiveParameters());
+                    diveResult.DiveIndex = id.GetValueOrDefault();
 
                     var jsonSettings = new JsonSerializerSettings
                     {
@@ -53,9 +59,8 @@ namespace MDivePlannerWeb.Controllers
                         ContractResolver = new CamelCasePropertyNamesContractResolver()                        
                     };
 
-                    var result = JsonConvert.SerializeObject(diveResult, jsonSettings);
-                    ViewBag.DiveResult = result;
-                    HttpContext.Session.SetString(DiveResult, result);
+                    var options = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(5));
+                    _memCache.Set(DiveResult + HttpContext.Session.Id, diveResult, options);
                 }
                 catch(Exception ex)
                 {
@@ -67,24 +72,51 @@ namespace MDivePlannerWeb.Controllers
             return PartialView("DiveParams", model);
         }
 
+        [HttpGet("/[controller]/newdive")]
+        public IActionResult NewDive([FromQuery] bool? resetAll)
+        {
+            if (resetAll == true)
+            {
+                _divesManager.ResetDives();
+                _memCache.Remove(DiveResult + HttpContext.Session.Id);
+            }
+
+            return PartialView("DiveParams", new DiveParamsModel().FillDefault());
+        }
+
+        [HttpGet("/[controller]/loaddive")]
+        public IActionResult LoadDive([FromQuery] int id)
+        {
+            var dive = _divesManager.GetDive(id);
+            return PartialView("DiveParams", new DiveParamsModel(dive.DiveParameters));
+        }
+
         [HttpPost("/[controller]/dive")]
         public JsonResult SaveDive()
         {
+            CalculatedDivePlan plan = null;
+            if (_memCache.TryGetValue(DiveResult + HttpContext.Session.Id, out plan))
+            {
+                plan = _divesManager.SaveDive(plan);
 
+                var options = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(5));
+                _memCache.Set(DiveResult + HttpContext.Session.Id, plan, options);
 
-            return Json(new { DiveName = "" });
+                return Json(new { diveName = plan.Description, diveId = plan.DiveIndex });
+            }
+
+            return Json(new { });
         }
 
         [HttpGet("/[controller]/result")]
         public JsonResult GetResult()
         {
-            var lastDive = HttpContext.Session.GetString(DiveResult);
-            if (!string.IsNullOrEmpty(lastDive))
+            CalculatedDivePlan plan = null;
+            if (_memCache.TryGetValue(DiveResult + HttpContext.Session.Id, out plan))
             {
-                var jsonObj = JsonConvert.DeserializeObject<CalculatedDivePlan>(lastDive);
-                return Json(jsonObj);
+                return Json(plan);
             }
-
+            
             return Json(new { noData = true });
         }
 

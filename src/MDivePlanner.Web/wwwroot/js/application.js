@@ -2,18 +2,94 @@ import { DiveResultBlockType } from './appTypes.js';
 import { DiveGraph } from './graph.js';
 class Application {
     constructor() {
+        this._newDiveId = "new-dive";
         this._grapth = new DiveGraph($("#OutputCanvas")[0]);
         this._grapth.reset();
         let context = this;
         this.overwatchLevelTables();
-        $("#SubmitDiveParams").click((e) => {
+        $("#SubmitDiveParams").click(e => {
             e.preventDefault();
             context.calculateDive();
+        });
+        $("#SaveDive").click(e => {
+            e.preventDefault();
+            context.saveDive();
+        });
+        $("#SavedDives").on("change", function () {
+            if ($(this).val() == context._newDiveId)
+                context.startNewDive();
+            else
+                context.loadDive(Number.parseInt($(this).val().toString()));
+        });
+        $("#ResetDives").click(e => {
+            e.preventDefault();
+            context.resetDives();
+        });
+    }
+    resetDives() {
+        this.apiCall("/app/newdive?resetAll=true", null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+            $("table.result-table.table1 tbody").html("");
+            $("table.result-table.table2 tbody").html("");
+            this._grapth.reset();
+            $("#SavedDives").html("");
+            $("#SavedDives").append($('<option>', {
+                value: this._newDiveId,
+                text: "New Dive",
+                selected: 'selected'
+            }));
+        });
+    }
+    loadDive(id) {
+        this.apiCall("/app/loaddive?id=" + id, null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+            this.calculateDive();
+        });
+    }
+    startNewDive() {
+        this.apiCall("/app/newdive", null, "", "get", result => {
+            $("#DiveParamsContainer").html(result);
+            this.overwatchLevelTables();
+            $("table.result-table.table1 tbody").html("");
+            $("table.result-table.table2 tbody").html("");
+            this._grapth.reset();
+        });
+    }
+    saveDive() {
+        let context = this;
+        this.apiCall("/app/dive", null, "", "post", result => {
+            if (result.diveName) {
+                var options = $("#SavedDives option");
+                let found = false;
+                for (let opt of options) {
+                    if ($(opt).attr("value") == result.diveId) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    options.removeAttr('selected');
+                    $("#SavedDives").append($('<option>', {
+                        value: result.diveId,
+                        text: result.diveName,
+                        selected: 'selected'
+                    }));
+                }
+            }
+            else {
+                alert("There is no current dive to save");
+            }
         });
     }
     calculateDive() {
         let context = this;
-        this.apiCall("/app/params", $("#SubmitDiveParamsForm").serialize(), "", "post", result => {
+        let diveId = $("#SavedDives").val();
+        let idParam = "";
+        if (diveId != this._newDiveId)
+            idParam = "?id=" + diveId;
+        this.apiCall("/app/calculate" + idParam, $("#SubmitDiveParamsForm").serialize(), "", "post", result => {
             $("#DiveParamsContainer").html(result);
             this.overwatchLevelTables();
             let markInvalid = elem => {
@@ -31,7 +107,7 @@ class Application {
             if (valid) {
                 this.apiCall("/app/result", null, "json", "get", result => {
                     context.fillResultTable(result);
-                    context.onGotResult(result);
+                    context.onGotResult(result, diveId.toString());
                 });
             }
             else {
@@ -39,7 +115,7 @@ class Application {
             }
         });
     }
-    onGotResult(result) {
+    onGotResult(result, id) {
         let errorOutput = $("#divePlanResultErrorsOutput");
         try {
             let serverError = $("#divePlanResultErrors").val().toString();
@@ -48,6 +124,9 @@ class Application {
                 errorOutput.text("No data from server");
             }
             else {
+                if (id != this._newDiveId) {
+                    $("#SavedDives :selected").text(result.description);
+                }
                 this._grapth.draw(result, false);
             }
         }

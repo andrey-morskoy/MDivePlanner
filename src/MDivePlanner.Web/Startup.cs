@@ -31,6 +31,7 @@ namespace MDivePlannerWeb
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddMemoryCache();
             services.AddSession(options => 
             {
                 options.Cookie.Name = "DivePlannerWeb.Session";

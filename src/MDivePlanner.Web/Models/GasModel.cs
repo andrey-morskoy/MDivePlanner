@@ -9,6 +9,16 @@ namespace MDivePlannerWeb.Models
 
         public double? PpHe { get; set; }
 
+        public GasModel()
+        {
+        }
+
+        public GasModel(BreathGas gas)
+        {
+            PpO2 = Math.Round(gas.PpO * 100.0, 1);
+            PpHe = Math.Round(gas.PpHe * 100.0, 1);
+        }
+
         public BreathGas GetGas()
         {
             var ppO2 = (PpO2 ?? 0) * 0.01;
