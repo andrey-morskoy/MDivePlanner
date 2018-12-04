@@ -90,6 +90,7 @@ namespace MDivePlannerWeb.Models
             RmvBottom = diveParams.DiveConfig.BottomRmv;
             RmvDeco = diveParams.DiveConfig.DecoRmv;
             Algorythm = diveParams.DiveConfig.AlgoSubType.ToString();
+            Interval = diveParams.IntervalTime > double.Epsilon ? diveParams.IntervalTime : (double?)null;
 
             int levelInd = 0;
 

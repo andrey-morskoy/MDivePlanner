@@ -14,15 +14,19 @@ class Application {
 
         $("#SubmitDiveParams").click(e => {
             e.preventDefault();
+            context.sessionCheck();
             context.calculateDive();
         });
 
         $("#SaveDive").click(e => {
             e.preventDefault();
+            context.sessionCheck();
             context.saveDive();
         });
 
         $("#SavedDives").on("change", function () {
+            context.sessionCheck();
+
             if ($(this).val() == context._newDiveId)
                 context.startNewDive();
             else
@@ -31,7 +35,17 @@ class Application {
 
         $("#ResetDives").click(e => {
             e.preventDefault();
+            context.sessionCheck();
             context.resetDives();
+        });
+    }
+
+    private sessionCheck(): void {
+        this.apiCall("/app/session", null, "", "get", result => {
+            if (result.newSession === true) {
+                alert("Current session has been expired. All data is being reset.");
+                document.location.reload(true);
+            }
         });
     }
 

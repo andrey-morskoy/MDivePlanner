@@ -20,14 +20,14 @@ namespace MDivePlannerWeb.Controllers
         private const string DiveResult = "DiveResult";
 
         private readonly IDiveCalculator _diveCalc;
-        private readonly IMemoryCache _memCache;
+        //private readonly IMemoryCache _memCache;
         private readonly DivesManager _divesManager;
         
         public AppController(IDiveCalculator diveCalculator, IMemoryCache memCache, DivesManager divesManager)
         {
             _diveCalc = diveCalculator;
             _divesManager = divesManager;
-            _memCache = memCache;
+            //_memCache = memCache;
 
             ViewBag.DiveResult = "";
             ViewBag.DiveResultErrors = string.Empty;
@@ -36,7 +36,7 @@ namespace MDivePlannerWeb.Controllers
         [HttpGet("/")]
         public IActionResult Index()
         {
-            HttpContext.Session.SetInt32("dummy", DateTime.Now.Second);
+            _divesManager.StartSession();
             return View(new AppModel());
         }
 
@@ -59,10 +59,9 @@ namespace MDivePlannerWeb.Controllers
                         ContractResolver = new CamelCasePropertyNamesContractResolver()                        
                     };
 
-                    var options = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(5));
-                    _memCache.Set(DiveResult + HttpContext.Session.Id, diveResult, options);
+                    _divesManager.SaveDive(diveResult);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     //TODO: notify client side
                     ViewBag.DiveResultErrors = ex.Message;
@@ -76,10 +75,7 @@ namespace MDivePlannerWeb.Controllers
         public IActionResult NewDive([FromQuery] bool? resetAll)
         {
             if (resetAll == true)
-            {
                 _divesManager.ResetDives();
-                _memCache.Remove(DiveResult + HttpContext.Session.Id);
-            }
 
             return PartialView("DiveParams", new DiveParamsModel().FillDefault());
         }
@@ -94,15 +90,11 @@ namespace MDivePlannerWeb.Controllers
         [HttpPost("/[controller]/dive")]
         public JsonResult SaveDive()
         {
-            CalculatedDivePlan plan = null;
-            if (_memCache.TryGetValue(DiveResult + HttpContext.Session.Id, out plan))
+            var divePlan = _divesManager.GetLatestDive();
+            if (divePlan != null)
             {
-                plan = _divesManager.SaveDive(plan);
-
-                var options = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(5));
-                _memCache.Set(DiveResult + HttpContext.Session.Id, plan, options);
-
-                return Json(new { diveName = plan.Description, diveId = plan.DiveIndex });
+                _divesManager.SaveDive(divePlan);
+                return Json(new { diveName = divePlan.Description, diveId = divePlan.DiveIndex });
             }
 
             return Json(new { });
@@ -111,14 +103,17 @@ namespace MDivePlannerWeb.Controllers
         [HttpGet("/[controller]/result")]
         public JsonResult GetResult()
         {
-            CalculatedDivePlan plan = null;
-            if (_memCache.TryGetValue(DiveResult + HttpContext.Session.Id, out plan))
-            {
-                return Json(plan);
-            }
-            
+            var currDive = _divesManager.GetLatestDive();
+            if (currDive != null)
+                return Json(currDive);
+
             return Json(new { noData = true });
         }
 
+        [HttpGet("/[controller]/session")]
+        public JsonResult SessionCheck()
+        {
+            return Json(new { newSession = !_divesManager.SessionExists() });
+        }
     }
 }

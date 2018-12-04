@@ -10,6 +10,7 @@ namespace MDivePlanner.Web.App
     public class DivesManager
     {
         private const string DivesSessionKey = "DivesSessionKey";
+        private const string InitSessionKey = "InitSessionKey";
 
         private IHttpContextAccessor _contextAccessor;
 
@@ -18,10 +19,16 @@ namespace MDivePlanner.Web.App
             _contextAccessor = httpContext;
         }
 
+        public bool SessionExists()
+        {
+            var session = _contextAccessor.HttpContext.Session;
+            return session?.GetInt32(InitSessionKey) > 0;
+        }
+
         public CalculatedDivePlan GetPreviousDive(int? currDiveIndex)
         {
             var session = _contextAccessor.HttpContext.Session;
-            var dives = session.GetString(DivesSessionKey);
+            var dives = session?.GetString(DivesSessionKey);
 
             if (string.IsNullOrEmpty(dives))
                 return null;
@@ -29,7 +36,7 @@ namespace MDivePlanner.Web.App
             var list = JsonConvert.DeserializeObject<List<CalculatedDivePlan>>(dives);
 
             if (!currDiveIndex.HasValue)
-                return list.Last();
+                return null;
 
             for (int i = list.Count - 1; i >= 0; i--)
             {
@@ -40,10 +47,22 @@ namespace MDivePlanner.Web.App
             return null;
         }
 
+        public CalculatedDivePlan GetLatestDive()
+        {
+            var session = _contextAccessor.HttpContext.Session;
+            var dives = session?.GetString(DivesSessionKey);
+
+            if (string.IsNullOrEmpty(dives))
+                return null;
+
+            var list = JsonConvert.DeserializeObject<List<CalculatedDivePlan>>(dives);
+            return list.LastOrDefault();
+        }
+
         public CalculatedDivePlan GetDive(int index)
         {
             var session = _contextAccessor.HttpContext.Session;
-            var dives = session.GetString(DivesSessionKey);
+            var dives = session?.GetString(DivesSessionKey);
 
             if (string.IsNullOrEmpty(dives))
                 return null;
@@ -55,7 +74,13 @@ namespace MDivePlanner.Web.App
         public CalculatedDivePlan SaveDive(CalculatedDivePlan plan)
         {
             var session = _contextAccessor.HttpContext.Session;
+            if (session == null)
+                return null;
+
             var dives = session.GetString(DivesSessionKey);
+
+            if (plan == null)
+                return null;
 
             if (string.IsNullOrEmpty(dives))
             {
@@ -85,7 +110,17 @@ namespace MDivePlanner.Web.App
         public void ResetDives()
         {
             var session = _contextAccessor.HttpContext.Session;
-            session.SetString(DivesSessionKey, string.Empty);
+            session?.SetString(DivesSessionKey, string.Empty);
+        }
+
+        public void StartSession()
+        {
+            var session = _contextAccessor.HttpContext.Session;
+            if (session != null)
+            {
+                session.SetInt32(InitSessionKey, DateTime.Now.Second);
+                ResetDives();
+            }
         }
     }
 }

@@ -229,7 +229,7 @@ namespace MDivePlanner.Domain.Logic
                 }
             }
 
-            var tissueData = _compartmentData.Select(c => new CompartmentCalculations { N2Presure = c.N2Presure, HePresure = c.HePresure }).ToArray();
+            var tissueData = _compartmentData.Select(c => new AlgoResult { N2Presure = c.N2Presure, HePresure = c.HePresure }).ToArray();
 
             var result = new CalculatedDiveResult
             {
@@ -256,17 +256,18 @@ namespace MDivePlanner.Domain.Logic
             _waterDensity = diveParams.Levels.First().DepthFactor.WaterDensity;
             _compartments = _compartmentTables[diveParams.DiveConfig.AlgoSubType];
 
-            if (tissuePreasures != null && tissuePreasures is CompartmentCalculations[])
+            if (tissuePreasures != null && tissuePreasures is IEnumerable<AlgoResult>)
             {
-                var tissuePreasureValues = (CompartmentCalculations[])tissuePreasures;
-                if (tissuePreasureValues.Length != _compartmentData.Length)
+                var tissuePreasureValues = (IEnumerable<AlgoResult>)tissuePreasures;
+                var tissueValuesCount = tissuePreasureValues.Count();
+                if (tissuePreasureValues.Count() != tissueValuesCount)
                     throw new Exception("Dives may use different deco algo.");
                 if (diveParams.IntervalTime < double.Epsilon)
                     throw new Exception("Interval time cannot be 0 for the next dive.");
 
-                for (int i = 0; i < tissuePreasureValues.Length; i++)
+                for (int i = 0; i < tissueValuesCount; i++)
                 {
-                    var currTissueValues = tissuePreasureValues[i];
+                    var currTissueValues = tissuePreasureValues.ElementAt(i);
                     _compartmentData[i].Reset(currTissueValues.N2Presure, currTissueValues.HePresure);
                     _compartmentAltData[i].Reset(currTissueValues.N2Presure, currTissueValues.HePresure);
                 }

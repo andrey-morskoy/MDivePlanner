@@ -43,7 +43,7 @@ namespace MDivePlanner.Domain.Entities
 
         public int DiveIndex { get; set; }
 
-        public object TissuesSaturationData { get; set; }
+        public IEnumerable<AlgoResult> TissuesSaturationData { get; set; }
 
         public IEnumerable<GasSwitch> GasSwitches { get; set; }
 
