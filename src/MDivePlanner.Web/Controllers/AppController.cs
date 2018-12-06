@@ -59,12 +59,15 @@ namespace MDivePlannerWeb.Controllers
                         ContractResolver = new CamelCasePropertyNamesContractResolver()                        
                     };
 
-                    _divesManager.SaveDive(diveResult);
+                    _divesManager.CurrentDive = diveResult;
                 }
                 catch (Exception ex)
                 {
                     //TODO: notify client side
                     ViewBag.DiveResultErrors = ex.Message;
+                    _divesManager.CurrentDive = null;
+                    model.IsModelValid = false;
+                    ModelState.AddModelError(string.Empty, ex.Message);
                 }
             }
 
@@ -77,6 +80,7 @@ namespace MDivePlannerWeb.Controllers
             if (resetAll == true)
                 _divesManager.ResetDives();
 
+            _divesManager.CurrentDive = null;
             return PartialView("DiveParams", new DiveParamsModel().FillDefault());
         }
 
@@ -90,10 +94,10 @@ namespace MDivePlannerWeb.Controllers
         [HttpPost("/[controller]/dive")]
         public JsonResult SaveDive()
         {
-            var divePlan = _divesManager.GetLatestDive();
+            var divePlan = _divesManager.CurrentDive;
             if (divePlan != null)
             {
-                _divesManager.SaveDive(divePlan);
+                _divesManager.CurrentDive = _divesManager.SaveDive(divePlan);
                 return Json(new { diveName = divePlan.Description, diveId = divePlan.DiveIndex });
             }
 
@@ -103,9 +107,22 @@ namespace MDivePlannerWeb.Controllers
         [HttpGet("/[controller]/result")]
         public JsonResult GetResult()
         {
-            var currDive = _divesManager.GetLatestDive();
+            var currDive = _divesManager.CurrentDive;
             if (currDive != null)
                 return Json(currDive);
+
+            return Json(new { noData = true });
+        }
+
+        [HttpGet("/[controller]/text_result")]
+        public JsonResult GetTextResult()
+        {
+            var currDive = _divesManager.CurrentDive;
+            if (currDive != null)
+            {
+                var textResult = new DiveTextResult(currDive);
+                return Json(textResult.Blocks);
+            }
 
             return Json(new { noData = true });
         }

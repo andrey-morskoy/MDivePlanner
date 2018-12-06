@@ -196,10 +196,25 @@ table.result-table tbody td.important {
     font-weight: bold;
 }
 
+.scale-container {
+    width: 1024px;
+    margin: auto;
+    margin-top: 10px;
+    text-align: left;
+}
+
+.scale-container select {
+    height: 21px;
+    line-height: 20px;
+    font-size: 12.7px;
+    width: 50px;
+}
+
 #OutputCanvas {
-    margin-top: 15px;
+    margin-top: 0px;
     border: 1px solid gray;
     border-radius: 5px;
+    box-shadow: 0px 0px 6px rgba(0,0,0,0.21);
 }
 
 #SubmitDiveParams {
@@ -225,4 +240,15 @@ table.result-table tbody td.important {
 #ResetDives {
     width: 90px;
     margin-left: 5px;
+}
+
+#TextResult {
+    margin-top: 15px;
+    box-sizing: padding-box;
+    width: 650px;
+    border: 1px solid gray;
+    border-radius: 4px;
+    box-shadow: 0px 0px 6px rgba(0,0,0,0.21);
+    font: normal 15px Arial;
+    padding: 5px;
 }

@@ -91,6 +91,12 @@ namespace MDivePlanner.Domain.Entities
             result.Add(new DiveResultBlock(string.Format("{0} mins", Math.Round(TotalTime - BottomTime)), type: DiveResultBlockType.AscentTime));
             result.Add(new DiveResultBlock(string.Format("{0} hours", Math.Round(FullDesaturationTime / 60)), type: DiveResultBlockType.FullDesaturation));
 
+            var gases = "level " + string.Join(", ", ConsumedBottomGases.Select(c => string.Format("{0} {1} ltr", c.Gas.Name, Math.Round(c.Amount))));
+            if (ConsumedDecoGases?.Any() == true)
+                gases += ";  deco " + string.Join(", ", ConsumedDecoGases.Select(c => string.Format("{0} {1} ltr", c.Gas.Name, Math.Round(c.Amount))));
+
+            result.Add(new DiveResultBlock(gases, type: DiveResultBlockType.ConsumedGas));
+
             return result;
         }
     }

@@ -7,6 +7,7 @@ class Application {
         this._grapth.reset();
         let context = this;
         this.overwatchLevelTables();
+        this.handleGraphScale();
         $("#SubmitDiveParams").click(e => {
             e.preventDefault();
             context.sessionCheck();
@@ -30,6 +31,23 @@ class Application {
             context.resetDives();
         });
     }
+    handleGraphScale() {
+        let context = this;
+        let scale = $("#GraphScale");
+        for (let i = 0; i < 8; i++) {
+            let val = 0.6 + i * 0.05;
+            scale.append(new Option(val.toFixed(2), val.toString()));
+        }
+        scale.append(new Option("1.0", "1.0", true, true));
+        for (let i = 1; i <= 10; i++) {
+            let val = 1.0 + i * 0.05;
+            scale.append(new Option(val.toFixed(2), val.toString()));
+        }
+        scale.change(function () {
+            let scaleVal = Number.parseFloat($(this).val().toString());
+            context._grapth.setSize(scaleVal, scaleVal);
+        });
+    }
     sessionCheck() {
         this.apiCall("/app/session", null, "", "get", result => {
             if (result.newSession === true) {
@@ -42,9 +60,7 @@ class Application {
         this.apiCall("/app/newdive?resetAll=true", null, "", "get", result => {
             $("#DiveParamsContainer").html(result);
             this.overwatchLevelTables();
-            $("table.result-table.table1 tbody").html("");
-            $("table.result-table.table2 tbody").html("");
-            this._grapth.reset();
+            this.clearResult();
             $("#SavedDives").html("");
             $("#SavedDives").append($('<option>', {
                 value: this._newDiveId,
@@ -64,9 +80,7 @@ class Application {
         this.apiCall("/app/newdive", null, "", "get", result => {
             $("#DiveParamsContainer").html(result);
             this.overwatchLevelTables();
-            $("table.result-table.table1 tbody").html("");
-            $("table.result-table.table2 tbody").html("");
-            this._grapth.reset();
+            this.clearResult();
         });
     }
     saveDive() {
@@ -74,6 +88,9 @@ class Application {
         this.apiCall("/app/dive", null, "", "post", result => {
             if (result.diveName) {
                 var options = $("#SavedDives option");
+                let saveDiveBtn = $("#SaveDive");
+                saveDiveBtn.text("Done");
+                setTimeout(() => { saveDiveBtn.text("Save Dive"); }, 600);
                 let found = false;
                 for (let opt of options) {
                     if ($(opt).attr("value") == result.diveId) {
@@ -121,11 +138,29 @@ class Application {
                     context.fillResultTable(result);
                     context.onGotResult(result, diveId.toString());
                 });
+                this.apiCall("/app/text_result", null, "json", "get", result => {
+                    let textbox = $("#TextResult");
+                    textbox.val("");
+                    if (result && result.length > 0) {
+                        for (let block of result) {
+                            textbox.val(textbox.val() + block.text);
+                        }
+                        textbox.css("height", 5 + textbox[0].scrollHeight + "px");
+                    }
+                });
             }
             else {
-                this._grapth.reset();
+                this.clearResult();
             }
         });
+    }
+    clearResult() {
+        $("table.result-table.table1 tbody").html("");
+        $("table.result-table.table2 tbody").html("");
+        this._grapth.reset();
+        let textbox = $("#TextResult");
+        textbox.val("");
+        textbox.css("height", "50px");
     }
     onGotResult(result, id) {
         let errorOutput = $("#divePlanResultErrorsOutput");

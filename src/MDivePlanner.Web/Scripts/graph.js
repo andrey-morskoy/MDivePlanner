@@ -6,10 +6,6 @@ export class DiveGraph {
         this._graphLineWidth = 4;
         this._margin = 60;
         this._marginTop = 35;
-        this._canvasHeight = 0;
-        this._canvasWidth = 0;
-        this._graphHeight = 0;
-        this._graphWidth = 0;
         this._colorDiveBottom = new Color(0, 220, 0);
         this._colorDiveDeco = new Color(255, 83, 0);
         this._colorDiveAscent = new Color(200, 210, 45);
@@ -17,12 +13,19 @@ export class DiveGraph {
         this._colorCelingDepth = new Color(100, 180, 180);
         this._colorGeneralLabel = new Color(80, 80, 80);
         this._colorBackground = new Color(251, 251, 253);
+        this._initialSize = { width: 0, height: 0 };
+        this._canvasHeight = 0;
+        this._canvasWidth = 0;
+        this._graphHeight = 0;
+        this._graphWidth = 0;
         this._showGasesGraph = false;
         this._diveResult = null;
         this._canvas = canvas;
         this._context = canvas.getContext("2d");
         this._canvasHeight = canvas.height;
         this._canvasWidth = canvas.width;
+        this._initialSize.width = canvas.width;
+        this._initialSize.height = canvas.height;
         this._showGasesGraph = false;
         this._graphHeight = this._canvasHeight - this._margin - this._marginTop;
         this._graphWidth = this._canvasWidth - 2 * this._margin;
@@ -35,6 +38,28 @@ export class DiveGraph {
             graph.draw(graph._diveResult, showGases);
             $(this).text(showGases ? "Profile" : "Gases");
         });
+    }
+    setSize(x, y) {
+        this._canvas.width = this._initialSize.width * x;
+        this._canvas.height = this._initialSize.height * y;
+        this._canvasHeight = this._canvas.height;
+        this._canvasWidth = this._canvas.width;
+        this._graphHeight = this._canvasHeight - this._margin - this._marginTop;
+        this._graphWidth = this._canvasWidth - 2 * this._margin;
+        this._context.fillStyle = this._colorBackground.color;
+        this._context.fillRect(0, 0, this._canvasWidth, this._canvasHeight);
+        this._context.fillStyle = Color.from(0);
+        let graphSwitchBtn = $("#GraphSwitch");
+        graphSwitchBtn.css("left", this._canvas.offsetLeft + this._canvas.width - graphSwitchBtn.outerWidth() - 5);
+        graphSwitchBtn.css("top", this._canvas.offsetTop + 5);
+        let koefs = this.drawBase();
+        this.drawCelingDepthPoints(koefs.depthKoef, koefs.timeKoef);
+        if (this._showGasesGraph)
+            this.drawGasesGrapth(koefs.depthKoef, koefs.timeKoef);
+        else {
+            this.drawDiveProfileGrapth(koefs.depthKoef, koefs.timeKoef);
+            this.drawMarks(koefs.depthKoef, koefs.timeKoef);
+        }
     }
     draw(diveResult, showGasesGrapth) {
         this._diveResult = diveResult;
@@ -65,7 +90,7 @@ export class DiveGraph {
         let ctx = this._context;
         let diveRes = this._diveResult;
         let prevPoint = null;
-        let colValue = 70;
+        let colValue = 50;
         let lineColor = Color.fromRgb(0, colValue, colValue);
         ctx.beginPath();
         ctx.lineWidth = 5;

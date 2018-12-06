@@ -11,8 +11,29 @@ namespace MDivePlanner.Web.App
     {
         private const string DivesSessionKey = "DivesSessionKey";
         private const string InitSessionKey = "InitSessionKey";
+        private const string CurrentDiveSessionKey = "CurrentDiveSessionKey";
 
         private IHttpContextAccessor _contextAccessor;
+
+        public CalculatedDivePlan CurrentDive
+        {
+            get
+            {
+                var currDiveJson = _contextAccessor.HttpContext.Session?.GetString(CurrentDiveSessionKey);
+                return string.IsNullOrEmpty(currDiveJson) ? null : JsonConvert.DeserializeObject<CalculatedDivePlan>(currDiveJson);
+            }
+
+            set
+            {
+                if (value == null)
+                    _contextAccessor.HttpContext.Session?.Remove(CurrentDiveSessionKey);
+                else
+                {
+                    var objJson = JsonConvert.SerializeObject(value);
+                    _contextAccessor.HttpContext.Session?.SetString(CurrentDiveSessionKey, objJson);
+                }
+            }
+        }
 
         public DivesManager(IHttpContextAccessor httpContext)
         {
@@ -36,7 +57,7 @@ namespace MDivePlanner.Web.App
             var list = JsonConvert.DeserializeObject<List<CalculatedDivePlan>>(dives);
 
             if (!currDiveIndex.HasValue)
-                return null;
+                return list?.LastOrDefault();;
 
             for (int i = list.Count - 1; i >= 0; i--)
             {
@@ -45,18 +66,6 @@ namespace MDivePlanner.Web.App
             }
 
             return null;
-        }
-
-        public CalculatedDivePlan GetLatestDive()
-        {
-            var session = _contextAccessor.HttpContext.Session;
-            var dives = session?.GetString(DivesSessionKey);
-
-            if (string.IsNullOrEmpty(dives))
-                return null;
-
-            var list = JsonConvert.DeserializeObject<List<CalculatedDivePlan>>(dives);
-            return list.LastOrDefault();
         }
 
         public CalculatedDivePlan GetDive(int index)
