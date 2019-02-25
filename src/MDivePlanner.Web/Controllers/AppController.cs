@@ -4,13 +4,13 @@ using System.Globalization;
 using System.Linq;
 using MDivePlanner.Domain.Entities;
 using MDivePlanner.Domain.Interfaces;
+using MDivePlanner.Web.App;
 using MDivePlannerWeb.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace MDivePlannerWeb.Controllers
 {
@@ -19,11 +19,15 @@ namespace MDivePlannerWeb.Controllers
     {
         private const string DiveResult = "DiveResult";
 
-        private IDiveCalculator _diveCalc;
-
-        public AppController(IDiveCalculator diveCalculator)
+        private readonly IDiveCalculator _diveCalc;
+        //private readonly IMemoryCache _memCache;
+        private readonly DivesManager _divesManager;
+        
+        public AppController(IDiveCalculator diveCalculator, IMemoryCache memCache, DivesManager divesManager)
         {
             _diveCalc = diveCalculator;
+            _divesManager = divesManager;
+            //_memCache = memCache;
 
             ViewBag.DiveResult = "";
             ViewBag.DiveResultErrors = string.Empty;
@@ -32,11 +36,12 @@ namespace MDivePlannerWeb.Controllers
         [HttpGet("/")]
         public IActionResult Index()
         {
+            _divesManager.StartSession();
             return View(new AppModel());
         }
 
-        [HttpPost("/[controller]/params")]
-        public IActionResult SetParams(DiveParamsModel model)
+        [HttpPost("/[controller]/calculate")]
+        public IActionResult Calculate(DiveParamsModel model, [FromQuery] int? id = null)
         {
             model.IsModelValid = ModelState.IsValid;
 
@@ -44,7 +49,9 @@ namespace MDivePlannerWeb.Controllers
             {
                 try
                 {
-                    var diveResult = _diveCalc.Calculate(null, model.GetDiveParameters());
+                    var prevDive = _divesManager.GetPreviousDive(id);
+                    var diveResult = _diveCalc.Calculate(prevDive, model.GetDiveParameters());
+                    diveResult.DiveIndex = id.GetValueOrDefault();
 
                     var jsonSettings = new JsonSerializerSettings
                     {
@@ -52,32 +59,78 @@ namespace MDivePlannerWeb.Controllers
                         ContractResolver = new CamelCasePropertyNamesContractResolver()                        
                     };
 
-                    var result = JsonConvert.SerializeObject(diveResult, jsonSettings);
-                    ViewBag.DiveResult = result;
-                    HttpContext.Session.SetString(DiveResult, result);
+                    _divesManager.CurrentDive = diveResult;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     //TODO: notify client side
                     ViewBag.DiveResultErrors = ex.Message;
+                    _divesManager.CurrentDive = null;
+                    model.IsModelValid = false;
+                    ModelState.AddModelError(string.Empty, ex.Message);
                 }
             }
 
             return PartialView("DiveParams", model);
         }
 
+        [HttpGet("/[controller]/newdive")]
+        public IActionResult NewDive([FromQuery] bool? resetAll)
+        {
+            if (resetAll == true)
+                _divesManager.ResetDives();
+
+            _divesManager.CurrentDive = null;
+            return PartialView("DiveParams", new DiveParamsModel().FillDefault());
+        }
+
+        [HttpGet("/[controller]/loaddive")]
+        public IActionResult LoadDive([FromQuery] int id)
+        {
+            var dive = _divesManager.GetDive(id);
+            return PartialView("DiveParams", new DiveParamsModel(dive.DiveParameters));
+        }
+
+        [HttpPost("/[controller]/dive")]
+        public JsonResult SaveDive()
+        {
+            var divePlan = _divesManager.CurrentDive;
+            if (divePlan != null)
+            {
+                _divesManager.CurrentDive = _divesManager.SaveDive(divePlan);
+                return Json(new { diveName = divePlan.Description, diveId = divePlan.DiveIndex });
+            }
+
+            return Json(new { });
+        }
+
         [HttpGet("/[controller]/result")]
         public JsonResult GetResult()
         {
-            var lastDive = HttpContext.Session.GetString(DiveResult);
-            if (!string.IsNullOrEmpty(lastDive))
+            var currDive = _divesManager.CurrentDive;
+            if (currDive != null)
+                return Json(currDive);
+
+            return Json(new { noData = true });
+        }
+
+        [HttpGet("/[controller]/text_result")]
+        public JsonResult GetTextResult()
+        {
+            var currDive = _divesManager.CurrentDive;
+            if (currDive != null)
             {
-                var jsonObj = JsonConvert.DeserializeObject<CalculatedDivePlan>(lastDive);
-                return Json(jsonObj);
+                var textResult = new DiveTextResult(currDive);
+                return Json(textResult.Blocks);
             }
 
             return Json(new { noData = true });
         }
 
+        [HttpGet("/[controller]/session")]
+        public JsonResult SessionCheck()
+        {
+            return Json(new { newSession = !_divesManager.SessionExists() });
+        }
     }
 }

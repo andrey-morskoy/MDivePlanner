@@ -298,7 +298,7 @@ namespace MDivePlanner.Domain.Logic
                         var rmv = (avgDepth <= firstStopDepth) ? _diveParameters.DiveConfig.DecoRmv : _diveParameters.DiveConfig.BottomRmv;
                         
                         var decoSwitchTime = gasSwitches.FirstOrDefault(gs => gs.IsDeco)?.AbsoluteTime ?? 0.0;
-                        var gases = (point.CurrentDiveTime >= decoSwitchTime) ? decoGases : bottomGases;
+                        var gases = (point.CurrentDiveTime >= decoSwitchTime && decoSwitchTime > double.Epsilon) ? decoGases : bottomGases;
 
                         if (!gases.ContainsKey(point.CurrentGas))
                             gases[point.CurrentGas] = new ConsumedGas() { Gas = point.CurrentGas };

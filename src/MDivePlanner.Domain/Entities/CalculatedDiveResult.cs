@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace MDivePlanner.Domain.Entities
 {
+    public struct AlgoResult
+    {
+        public double N2Presure;
+        public double HePresure;
+    }
+
 
     public class CalculatedDiveResult
     {
@@ -24,7 +30,7 @@ namespace MDivePlanner.Domain.Entities
 
         public IEnumerable<DivePoint> DivePoints { get; set; }
 
-        public object TissuesSaturationData { get; set; }
+        public IEnumerable<AlgoResult> TissuesSaturationData { get; set; }
 
         public IEnumerable<string> Errors { get; set; }
     }

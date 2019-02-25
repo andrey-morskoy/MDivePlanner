@@ -24,6 +24,7 @@
   <ItemGroup>
     <None Remove="Scripts\application.ts" />
     <None Remove="Scripts\appTypes.ts" />
+    <None Remove="Scripts\Graph.ts" />
   </ItemGroup>
 
 
@@ -31,6 +32,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="8.0.100" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0-preview3-35497" PrivateAssets="All" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
   </ItemGroup>
 
 
@@ -47,6 +49,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\application.ts" />
     <TypeScriptCompile Include="Scripts\appTypes.ts" />
+    <TypeScriptCompile Include="Scripts\graph.ts" />
   </ItemGroup>
 
 </Project>

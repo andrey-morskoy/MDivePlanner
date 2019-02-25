@@ -93,12 +93,16 @@
                 <label asp-for="Interval">Interval:</label>
                 <br />
                 @Html.TextBoxFor(m => m.Interval, new { @class = "text-box" })
+                &nbsp;
+                mins
                 <br />
                 @Html.ValidationMessageFor(m => m.Interval)
                 <br />
                 <label asp-for="WaterDensity">Water Density:</label>
                 <br />
                 @Html.TextBoxFor(m => m.WaterDensity, new { @class = "text-box" })
+                &nbsp;
+                kg/m3
                 <br />
                 @Html.ValidationMessageFor(m => m.WaterDensity)
                 <br />
@@ -177,6 +181,5 @@
     @Html.ValidationSummary(true)
 
     <input type="hidden" id="DiveParamsValid" value="@{ @Model.IsModelValid.ToString().ToLower() }" />
-    <input type="hidden" id="divePlanResult" value='@Html.Raw(@ViewBag.DiveResult)' />
     <input type="hidden" id="divePlanResultErrors" value='@Html.Raw(@ViewBag.DiveResultErrors)' />
 </div>

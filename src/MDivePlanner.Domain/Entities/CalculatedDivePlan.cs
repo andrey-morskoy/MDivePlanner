@@ -43,7 +43,7 @@ namespace MDivePlanner.Domain.Entities
 
         public int DiveIndex { get; set; }
 
-        public object TissuesSaturationData { get; set; }
+        public IEnumerable<AlgoResult> TissuesSaturationData { get; set; }
 
         public IEnumerable<GasSwitch> GasSwitches { get; set; }
 
@@ -90,6 +90,12 @@ namespace MDivePlanner.Domain.Entities
             result.Add(new DiveResultBlock(string.Format("{0} mins", Math.Round(MaxNoDecoDepthTime.Time)), type: DiveResultBlockType.NoDecoTime));
             result.Add(new DiveResultBlock(string.Format("{0} mins", Math.Round(TotalTime - BottomTime)), type: DiveResultBlockType.AscentTime));
             result.Add(new DiveResultBlock(string.Format("{0} hours", Math.Round(FullDesaturationTime / 60)), type: DiveResultBlockType.FullDesaturation));
+
+            var gases = "level " + string.Join(", ", ConsumedBottomGases.Select(c => string.Format("{0} {1} ltr", c.Gas.Name, Math.Round(c.Amount))));
+            if (ConsumedDecoGases?.Any() == true)
+                gases += ";  deco " + string.Join(", ", ConsumedDecoGases.Select(c => string.Format("{0} {1} ltr", c.Gas.Name, Math.Round(c.Amount))));
+
+            result.Add(new DiveResultBlock(gases, type: DiveResultBlockType.ConsumedGas));
 
             return result;
         }

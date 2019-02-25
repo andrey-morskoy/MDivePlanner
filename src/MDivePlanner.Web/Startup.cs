@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation.AspNetCore;
+using MDivePlanner.Web.App;
 
 namespace MDivePlannerWeb
 {
@@ -30,7 +31,7 @@ namespace MDivePlannerWeb
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDistributedMemoryCache();
+            services.AddMemoryCache();
             services.AddSession(options => 
             {
                 options.Cookie.Name = "DivePlannerWeb.Session";
@@ -42,6 +43,8 @@ namespace MDivePlannerWeb
 
             services.AddSingleton<IDecoAlgorythm, Zhl16Algorithm>();
             services.AddSingleton<IDiveCalculator, DiveCalculator>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<DivesManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
