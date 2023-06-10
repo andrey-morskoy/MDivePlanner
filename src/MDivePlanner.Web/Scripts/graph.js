@@ -449,4 +449,4 @@ export class DiveGraph {
         return { depthKoef, timeKoef };
     }
 }
-//# sourceMappingURL=graph.js.map
+//# sourceMappingURL=Graph.js.map
