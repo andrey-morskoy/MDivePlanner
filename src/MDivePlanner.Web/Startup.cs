@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentValidation.AspNetCore;
 using MDivePlanner.Web.App;
 
+// test
+
 namespace MDivePlannerWeb
 {
     public class Startup
